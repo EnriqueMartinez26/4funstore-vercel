@@ -1,26 +1,36 @@
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
+// Apunta al puerto 5000 por defecto
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
 
-// Función para adaptar un producto del Backend (Español) al Frontend (Inglés)
+// --- ADAPTADOR DE IDIOMA (Backend Español -> Frontend Inglés) ---
 function adaptProduct(apiProduct: any): any {
   if (!apiProduct || typeof apiProduct !== 'object') return apiProduct;
 
+  // Si viene anidado (ej. respuesta de wishlist populada)
+  if (apiProduct.productoId && !apiProduct.nombre) {
+    return adaptProduct(apiProduct.productoId);
+  }
+
   return {
     id: apiProduct._id || apiProduct.id,
-    name: apiProduct.nombre,
-    description: apiProduct.descripcion,
-    price: apiProduct.precio,
-    platform: typeof apiProduct.plataformaId === 'object' 
-      ? { id: apiProduct.plataformaId.id, name: apiProduct.plataformaId.nombre } 
-      : { id: apiProduct.plataformaId, name: apiProduct.plataformaId },
-    genre: typeof apiProduct.generoId === 'object'
-      ? { id: apiProduct.generoId.id, name: apiProduct.generoId.nombre }
-      : { id: apiProduct.generoId, name: apiProduct.generoId },
+    name: apiProduct.nombre,              // Español -> Inglés
+    description: apiProduct.descripcion,  // Español -> Inglés
+    price: apiProduct.precio,             // Español -> Inglés
+    
+    // Mapeo seguro de objetos anidados (Plataforma/Género)
+    platform: typeof apiProduct.plataformaId === 'object' && apiProduct.plataformaId !== null
+      ? { id: apiProduct.plataformaId._id || apiProduct.plataformaId.id, name: apiProduct.plataformaId.nombre } 
+      : { id: apiProduct.plataformaId, name: 'Plataforma' },
+      
+    genre: typeof apiProduct.generoId === 'object' && apiProduct.generoId !== null
+      ? { id: apiProduct.generoId._id || apiProduct.generoId.id, name: apiProduct.generoId.nombre }
+      : { id: apiProduct.generoId, name: 'Género' },
+
     type: apiProduct.tipo === 'Fisico' ? 'Physical' : 'Digital',
     releaseDate: apiProduct.fechaLanzamiento,
     developer: apiProduct.desarrollador,
     imageId: apiProduct.imagenUrl,
-    rating: apiProduct.calificacion,
-    stock: apiProduct.stock
+    rating: apiProduct.calificacion || 0,
+    stock: apiProduct.stock || 0
   };
 }
 
@@ -38,12 +48,41 @@ export class ApiClient {
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
-      throw new Error(errorData.message || `API Error: ${response.statusText}`);
+      throw new Error(errorData.message || `Error API: ${response.statusText}`);
     }
 
     return response.json();
   }
 
+  // --- AUTENTICACIÓN ---
+  static async login(data: { email: string; password: string }) {
+    return this.request('/auth/login', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  static async register(data: { name: string; email: string; password: string }) {
+    return this.request('/auth/register', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  static async getProfile(token: string) {
+    return this.request('/auth/profile', {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+  }
+
+  static async logout(token: string) {
+    return this.request('/auth/logout', {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}` }
+    });
+  }
+
+  // --- PRODUCTOS ---
   static async getProducts() {
     const data = await this.request('/products');
     return Array.isArray(data) ? data.map(adaptProduct) : [];
@@ -54,12 +93,11 @@ export class ApiClient {
     return adaptProduct(data);
   }
 
-  // --- NUEVO MÉTODO: Crear Producto ---
   static async createProduct(productData: any, token?: string) {
     const headers: HeadersInit = {};
     if (token) headers.Authorization = `Bearer ${token}`;
 
-    // Convertimos los datos del formulario (Frontend/Inglés) al formato del Backend (Español)
+    // Convertimos Frontend (Inglés) -> Backend (Español)
     const backendPayload = {
       nombre: productData.name,
       descripcion: productData.description,
@@ -85,6 +123,7 @@ export class ApiClient {
     return this.request('/categories');
   }
 
+  // --- CARRITO ---
   static async getCart(userId: string | undefined, token?: string) {
     if (!userId) return { cart: { items: [] } };
     
@@ -93,17 +132,19 @@ export class ApiClient {
     
     const data = await this.request(`/cart/${userId}`, { headers });
     
+    // Adaptar items dentro del carrito
     if (data.cart && data.cart.items) {
        data.cart.items = data.cart.items.map((item: any) => ({
          ...item,
          name: item.product?.nombre || item.name,
-         price: item.product?.precio || item.price
+         price: item.product?.precio || item.price,
+         image: item.product?.imagenUrl || item.image
        }));
     }
     return data;
   }
 
-  static async addToCart(productId: string, quantity: number = 1, token?: string) {
+  static async addToCart(productId: string, quantity: number, token?: string) {
     const headers: HeadersInit = {};
     if (token) headers.Authorization = `Bearer ${token}`;
     return this.request('/cart', {
@@ -113,31 +154,39 @@ export class ApiClient {
     });
   }
 
-  static async updateCartItem(productId: string, quantity: number, token?: string) {
+  static async removeFromCart(itemId: string, token?: string) {
     const headers: HeadersInit = {};
     if (token) headers.Authorization = `Bearer ${token}`;
-    return this.request('/cart', {
-      method: 'PUT',
-      headers,
-      body: JSON.stringify({ productId, quantity }),
-    });
-  }
-
-  static async removeFromCart(productId: string, token?: string) {
-    const headers: HeadersInit = {};
-    if (token) headers.Authorization = `Bearer ${token}`;
-    return this.request(`/cart/${productId}`, {
-      method: 'DELETE',
-      headers,
-    });
+    return this.request(`/cart/${itemId}`, { method: 'DELETE', headers });
   }
 
   static async clearCart(token?: string) {
     const headers: HeadersInit = {};
     if (token) headers.Authorization = `Bearer ${token}`;
-    return this.request('/cart', {
-      method: 'DELETE',
+    return this.request('/cart', { method: 'DELETE', headers });
+  }
+  
+  static async updateCartItem(productId: string, quantity: number, token?: string) {
+    const headers: HeadersInit = {};
+    if (token) headers.Authorization = `Bearer ${token}`;
+    return this.request('/cart', { method: 'PUT', headers, body: JSON.stringify({ productId, quantity }) });
+  }
+
+  // --- WISHLIST ---
+  static async getWishlist(userId: string, token?: string) {
+    const headers: HeadersInit = {};
+    if (token) headers.Authorization = `Bearer ${token}`;
+    const data = await this.request(`/wishlist/${userId}`, { headers });
+    return Array.isArray(data.wishlist) ? data.wishlist.map(adaptProduct) : [];
+  }
+
+  static async toggleWishlist(userId: string, productId: string, token?: string) {
+    const headers: HeadersInit = {};
+    if (token) headers.Authorization = `Bearer ${token}`;
+    return this.request('/wishlist/toggle', {
+      method: 'POST',
       headers,
+      body: JSON.stringify({ userId, productId })
     });
   }
 }

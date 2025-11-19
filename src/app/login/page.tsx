@@ -131,7 +131,7 @@ export default function LoginPage() {
             </Link>
           </div>
           <div className="text-xs">
-            Credenciales demo: admin@golstore.com | password123
+            Credenciales demo: admin@4fun.com | password123
           </div>
         </CardFooter>
       </Card>

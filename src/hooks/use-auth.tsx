@@ -1,9 +1,8 @@
 'use client';
 
 import { useContext, createContext, useState, useEffect, ReactNode } from 'react';
-import { loginUser, registerUser, logoutUser, getProfile } from '@/services/api/auth';
+import { ApiClient } from '@/lib/api-client';
 
-// Definición de tipos
 interface User {
   id: string;
   name: string;
@@ -20,7 +19,6 @@ interface AuthContextType {
   logout: () => Promise<void>;
 }
 
-// Crear el contexto
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
@@ -28,9 +26,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [token, setToken] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // Cargar usuario del localStorage al iniciar
   useEffect(() => {
-    // Verificación segura de window para Next.js
     if (typeof window !== 'undefined') {
       const storedToken = localStorage.getItem('token');
       const storedUser = localStorage.getItem('user');
@@ -42,14 +38,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         } catch {
           setUser(null);
         }
-
-        // Verificar si el token sigue siendo válido en el backend
-        getProfile(storedToken)
-          .then((profileData) => {
-            setUser(profileData.user);
-          })
+        // Validar token silenciosamente
+        ApiClient.getProfile(storedToken)
           .catch(() => {
-            // Token inválido, limpiar
+            // Si falla, limpiar sesión
             localStorage.removeItem('token');
             localStorage.removeItem('user');
             setToken(null);
@@ -60,14 +52,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setLoading(false);
       }
     } else {
-        setLoading(false);
+      setLoading(false);
     }
   }, []);
 
   const login = async (email: string, password: string) => {
     try {
-      const response = await loginUser({ email, password });
-
+      const response = await ApiClient.login({ email, password });
       if (response.success) {
         setUser(response.user);
         setToken(response.token);
@@ -77,17 +68,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
         return { success: true };
       }
-
-      return { success: false, message: 'Error al iniciar sesión' };
+      return { success: false, message: 'Credenciales inválidas' };
     } catch (error: any) {
-      return { success: false, message: error?.message || 'Error desconocido al iniciar sesión' };
+      return { success: false, message: error.message };
     }
   };
 
   const register = async (name: string, email: string, password: string) => {
     try {
-      const response = await registerUser({ name, email, password });
-
+      const response = await ApiClient.register({ name, email, password });
       if (response.success) {
         setUser(response.user);
         setToken(response.token);
@@ -97,31 +86,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
         return { success: true };
       }
-
-      return { success: false, message: 'Error al registrar' };
+      return { success: false, message: 'Error en registro' };
     } catch (error: any) {
-      return { success: false, message: error?.message || 'Error desconocido al registrar' };
+      return { success: false, message: error.message };
     }
   };
 
   const logout = async () => {
     try {
-      if (token) {
-        await logoutUser(token);
-      }
+      if (token) await ApiClient.logout(token);
     } catch (error) {
-      console.error('Error al cerrar sesión:', error);
+      console.error(error);
     } finally {
       setUser(null);
       setToken(null);
       if (typeof window !== 'undefined') {
         localStorage.removeItem('token');
         localStorage.removeItem('user');
+        localStorage.removeItem('cart');
       }
     }
   };
 
-  // --- AQUÍ FALTABA EL RETURN ---
   return (
     <AuthContext.Provider value={{ user, token, loading, login, register, logout }}>
       {children}
@@ -131,8 +117,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
 export function useAuth() {
   const context = useContext(AuthContext);
-  if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
+  if (context === undefined) throw new Error('useAuth debe usarse dentro de AuthProvider');
   return context;
 }

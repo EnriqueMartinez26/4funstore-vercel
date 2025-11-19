@@ -35,7 +35,6 @@ export default function RegisterPage() {
     e.preventDefault();
     setError("");
 
-    // Validar contraseñas
     if (formData.password !== formData.confirmPassword) {
       setError("Las contraseñas no coinciden");
       return;

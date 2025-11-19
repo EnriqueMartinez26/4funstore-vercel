@@ -5,6 +5,7 @@ export const platforms: Platform[] = [
   { id: 'xbox', name: 'Xbox Series X' },
   { id: 'switch', name: 'Nintendo Switch' },
   { id: 'pc', name: 'PC' },
+  { id: 'multi', name: 'Multiplataforma' }, // Nueva opción agregada
 ];
 
 export const genres: Genre[] = [
@@ -17,6 +18,8 @@ export const genres: Genre[] = [
   { id: 'racing', name: 'Racing' },
 ];
 
+// La lista de juegos 'allGames' se mantiene igual, pero ahora podrías usar
+// platforms[4] para asignar 'Multiplataforma' a nuevos juegos si quisieras.
 export const allGames: Game[] = [
   {
     id: '1',

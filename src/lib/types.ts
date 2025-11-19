@@ -8,7 +8,6 @@ export type Genre = {
   name: string;
 };
 
-// Se usan nombres de campos en inglés para coincidir con los componentes de React
 export type Game = {
   id: string;
   name: string;
