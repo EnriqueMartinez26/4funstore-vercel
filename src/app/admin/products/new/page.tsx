@@ -1,5 +1,4 @@
 "use client";
-
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/use-auth";
@@ -19,39 +18,18 @@ export default function NewProductPage() {
   const { token } = useAuth();
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
-
-  const [formData, setFormData] = useState({
-    name: "",
-    description: "",
-    price: "",
-    stock: "",
-    platformId: "",
-    genreId: "",
-    type: "Digital",
-    developer: "",
-    imageUrl: "",
-  });
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-  };
-
-  const handleSelectChange = (name: string, value: string) => {
-    setFormData((prev) => ({ ...prev, [name]: value }));
-  };
+  const [formData, setFormData] = useState({ name: "", description: "", price: "", stock: "", platformId: "", genreId: "", type: "Digital", developer: "", imageUrl: "" });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
-
     try {
       await ApiClient.createProduct(formData, token || undefined);
-      toast({ title: "Producto creado", description: "El producto se ha publicado exitosamente." });
+      toast({ title: "Éxito", description: "Producto publicado." });
       router.push("/admin/products");
       router.refresh();
     } catch (error: any) {
-      toast({ variant: "destructive", title: "Error", description: "No se pudo crear el producto." });
+      toast({ variant: "destructive", title: "Error", description: error.message || "Falló la creación." });
     } finally {
       setIsSubmitting(false);
     }
@@ -60,50 +38,21 @@ export default function NewProductPage() {
   return (
     <div className="max-w-2xl mx-auto py-8">
       <Card>
-        <CardHeader><CardTitle className="text-2xl">Publicar Nuevo Producto</CardTitle></CardHeader>
+        <CardHeader><CardTitle>Publicar Nuevo Producto</CardTitle></CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="space-y-2">
-              <Label>Nombre del Juego</Label>
-              <Input name="name" required value={formData.name} onChange={handleChange} placeholder="Ej: Super Mario Odyssey" />
-            </div>
-            <div className="space-y-2">
-              <Label>Descripción</Label>
-              <Textarea name="description" required value={formData.description} onChange={handleChange} placeholder="Detalles del juego..." />
+            <div className="space-y-2"><Label>Nombre</Label><Input required value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} /></div>
+            <div className="space-y-2"><Label>Descripción</Label><Textarea required value={formData.description} onChange={(e) => setFormData({...formData, description: e.target.value})} /></div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2"><Label>Precio</Label><Input type="number" required value={formData.price} onChange={(e) => setFormData({...formData, price: e.target.value})} /></div>
+              <div className="space-y-2"><Label>Stock</Label><Input type="number" required value={formData.stock} onChange={(e) => setFormData({...formData, stock: e.target.value})} /></div>
             </div>
             <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label>Precio ($)</Label>
-                <Input name="price" type="number" step="0.01" required value={formData.price} onChange={handleChange} />
-              </div>
-              <div className="space-y-2">
-                <Label>Stock</Label>
-                <Input name="stock" type="number" required value={formData.stock} onChange={handleChange} />
-              </div>
+              <div className="space-y-2"><Label>Plataforma</Label><Select onValueChange={(v) => setFormData({...formData, platformId: v})}><SelectTrigger><SelectValue placeholder="Seleccionar" /></SelectTrigger><SelectContent>{platforms.map(p => <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>)}</SelectContent></Select></div>
+              <div className="space-y-2"><Label>Género</Label><Select onValueChange={(v) => setFormData({...formData, genreId: v})}><SelectTrigger><SelectValue placeholder="Seleccionar" /></SelectTrigger><SelectContent>{genres.map(g => <SelectItem key={g.id} value={g.id}>{g.name}</SelectItem>)}</SelectContent></Select></div>
             </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label>Plataforma</Label>
-                <Select onValueChange={(val) => handleSelectChange("platformId", val)}>
-                  <SelectTrigger><SelectValue placeholder="Seleccionar" /></SelectTrigger>
-                  <SelectContent>{platforms.map((p) => <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>)}</SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label>Género</Label>
-                <Select onValueChange={(val) => handleSelectChange("genreId", val)}>
-                  <SelectTrigger><SelectValue placeholder="Seleccionar" /></SelectTrigger>
-                  <SelectContent>{genres.map((g) => <SelectItem key={g.id} value={g.id}>{g.name}</SelectItem>)}</SelectContent>
-                </Select>
-              </div>
-            </div>
-            <div className="space-y-2">
-              <Label>URL de la Imagen</Label>
-              <Input name="imageUrl" value={formData.imageUrl} onChange={handleChange} placeholder="https://ejemplo.com/imagen.jpg" />
-            </div>
-            <Button type="submit" className="w-full" disabled={isSubmitting}>
-              {isSubmitting ? <Loader2 className="animate-spin" /> : <><Upload className="mr-2 h-4 w-4" /> Publicar Producto</>}
-            </Button>
+            <div className="space-y-2"><Label>URL Imagen</Label><Input value={formData.imageUrl} onChange={(e) => setFormData({...formData, imageUrl: e.target.value})} /></div>
+            <Button type="submit" className="w-full" disabled={isSubmitting}>{isSubmitting ? <Loader2 className="animate-spin" /> : "Publicar"}</Button>
           </form>
         </CardContent>
       </Card>

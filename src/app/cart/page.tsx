@@ -1,101 +1,151 @@
-"use client";
+'use client';
 
-import Image from "next/image";
-import Link from "next/link";
-import { useCart } from "@/context/CartContext";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { formatCurrency } from "@/lib/utils";
-import { PlaceHolderImages as placeholderImages } from "@/lib/placeholder-images";
-import { Trash2, ShoppingBag } from "lucide-react";
+import { createContext, useContext, useEffect, useState } from 'react';
+import { ApiClient } from '@/lib/api-client';
+import { useAuth } from '@/hooks/use-auth';
+import type { Game } from '@/lib/types';
 
-export default function CartPage() {
-  const { cart, removeFromCart, updateQuantity, cartTotal, cartCount } = useCart();
+// CORRECCIÓN: Añadida la propiedad platform a la interfaz
+export interface CartItem {
+  id: string;
+  productId: string;
+  name: string;
+  price: number;
+  quantity: number;
+  image?: string;
+  platform?: {
+    id?: string;
+    name: string;
+  };
+}
+
+interface CartContextType {
+  cart: CartItem[];
+  addToCart: (product: any, quantity?: number) => Promise<void>;
+  removeFromCart: (itemId: string) => Promise<void>;
+  updateQuantity: (itemId: string, quantity: number) => Promise<void>;
+  clearCart: () => Promise<void>;
+  cartTotal: number;
+  cartCount: number;
+  isLoading: boolean;
+  wishlist: Game[];
+  toggleWishlist: (game: Game) => Promise<void>;
+  isInWishlist: (gameId: string) => boolean;
+}
+
+const CartContext = createContext<CartContextType | undefined>(undefined);
+
+export function CartProvider({ children }: { children: React.ReactNode }) {
+  const [cart, setCart] = useState<CartItem[]>([]);
+  const [wishlist, setWishlist] = useState<Game[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const { user, token } = useAuth();
+
+  const cartTotal = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
+  const cartCount = cart.reduce((sum, item) => sum + item.quantity, 0);
+
+  const syncData = async () => {
+    try {
+      setIsLoading(true);
+      const cartRes = await ApiClient.getCart(user?.id, token ?? undefined);
+      setCart(cartRes.cart?.items || []);
+      if (user?.id) {
+        const wishRes = await ApiClient.getWishlist(user.id, token ?? undefined);
+        setWishlist(wishRes);
+      }
+    } catch (error) {
+      console.error('Error syncing data:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (user && token) {
+      syncData();
+    } else {
+      const localCart = localStorage.getItem('cart');
+      if (localCart) try { setCart(JSON.parse(localCart)); } catch {}
+      setWishlist([]);
+      setIsLoading(false);
+    }
+  }, [user, token]);
+
+  const addToCart = async (product: any, quantity: number = 1) => {
+    if (user && token) {
+      await ApiClient.addToCart(user.id, product.id, quantity, token);
+      await syncData();
+    } else {
+      const existing = cart.find(p => p.productId === product.id);
+      let newCart = [...cart];
+      if (existing) { existing.quantity += quantity; } 
+      else {
+         // Al agregar localmente, guardamos la plataforma del producto
+         newCart.push({
+           id: `loc-${Date.now()}`, 
+           productId: product.id, 
+           name: product.name, 
+           price: product.price, 
+           quantity, 
+           image: product.imageId,
+           platform: product.platform // Guardar plataforma localmente
+         });
+      }
+      setCart(newCart);
+      localStorage.setItem('cart', JSON.stringify(newCart));
+    }
+  };
+
+  const updateQuantity = async (itemId: string, quantity: number) => {
+     if (user && token) {
+       await ApiClient.updateCartItem(user.id, itemId, quantity, token);
+       await syncData();
+     } else {
+       const newCart = cart.map(item => item.id === itemId ? {...item, quantity} : item);
+       setCart(newCart);
+       localStorage.setItem('cart', JSON.stringify(newCart));
+     }
+  };
+
+  const removeFromCart = async (itemId: string) => {
+    if (user && token) {
+      await ApiClient.removeFromCart(user.id, itemId, token);
+      await syncData();
+    } else {
+      const newCart = cart.filter(item => item.id !== itemId);
+      setCart(newCart);
+      localStorage.setItem('cart', JSON.stringify(newCart));
+    }
+  };
+
+  const clearCart = async () => {
+    if (user && token) {
+      await ApiClient.clearCart(user.id, token);
+      await syncData();
+    } else {
+      setCart([]);
+      localStorage.removeItem('cart');
+    }
+  };
+
+  const toggleWishlist = async (game: Game) => {
+    if (!user || !token) return alert("Inicia sesión para guardar favoritos.");
+    const exists = isInWishlist(game.id);
+    setWishlist(prev => exists ? prev.filter(p => p.id !== game.id) : [...prev, game]);
+    try { await ApiClient.toggleWishlist(user.id, game.id, token); } catch { syncData(); }
+  };
+
+  const isInWishlist = (gameId: string) => wishlist.some(g => g.id === gameId);
 
   return (
-    <div className="container mx-auto max-w-screen-lg px-4 py-8 md:py-12">
-      <h1 className="font-headline text-3xl md:text-4xl font-bold mb-8">Tu Carrito</h1>
-      
-      {cart.length === 0 ? (
-        <div className="text-center py-16 border-2 border-dashed rounded-lg">
-          <ShoppingBag className="mx-auto h-16 w-16 text-muted-foreground" />
-          <h2 className="mt-6 font-headline text-2xl font-bold">Tu carrito está vacío</h2>
-          <p className="mt-2 text-muted-foreground">Parece que aún no has agregado nada a tu carrito.</p>
-          <Button asChild className="mt-6">
-            <Link href="/productos">Comenzar a Comprar</Link>
-          </Button>
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
-          <div className="lg:col-span-2 space-y-4">
-            {cart.map((item) => {
-              // Intentar buscar imagen local si existe, sino usar la del producto
-              const image = placeholderImages.find(p => p.id === item.imageId);
-              const imageUrl = image ? image.imageUrl : (item.image || "/placeholder.png");
-
-              return (
-                <Card key={item.id} className="flex items-center p-4">
-                  <div className="relative h-24 w-20 flex-shrink-0 overflow-hidden rounded-md bg-secondary">
-                     <Image 
-                       src={imageUrl} 
-                       alt={item.name} 
-                       fill 
-                       className="object-cover" 
-                     />
-                  </div>
-                  <div className="ml-4 flex-1">
-                    <h3 className="font-headline font-semibold">{item.name}</h3>
-                    {/* Si tienes plataforma en el item, muéstrala, si no, ocúltalo o pon algo genérico */}
-                    <p className="text-sm text-muted-foreground">
-                      {item.platform?.name || 'Videojuego'}
-                    </p>
-                    <p className="text-sm font-bold mt-1">{formatCurrency(item.price)}</p>
-                  </div>
-                  <div className="flex items-center gap-4 ml-4">
-                    <Input
-                      type="number"
-                      min="1"
-                      value={item.quantity}
-                      onChange={(e) => updateQuantity(item.productId, parseInt(e.target.value))}
-                      className="h-9 w-16 text-center"
-                      aria-label="Cantidad"
-                    />
-                    <Button variant="ghost" size="icon" onClick={() => removeFromCart(item.id)} aria-label="Eliminar producto">
-                      <Trash2 className="h-4 w-4 text-destructive" />
-                    </Button>
-                  </div>
-                </Card>
-              );
-            })}
-          </div>
-
-          <div className="lg:col-span-1 sticky top-24">
-            <Card>
-              <CardHeader>
-                <CardTitle className="font-headline">Resumen del Pedido</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex justify-between">
-                  <span>Subtotal ({cartCount} productos)</span>
-                  <span>{formatCurrency(cartTotal)}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span>Impuestos</span>
-                  <span className="text-muted-foreground text-sm">Calculado al pagar</span>
-                </div>
-                 <div className="flex justify-between font-bold text-lg pt-4 border-t">
-                  <span>Total</span>
-                  <span>{formatCurrency(cartTotal)}</span>
-                </div>
-              </CardContent>
-              <CardFooter>
-                <Button className="w-full" size="lg">Proceder al Pago</Button>
-              </CardFooter>
-            </Card>
-          </div>
-        </div>
-      )}
-    </div>
+    <CartContext.Provider value={{ cart, addToCart, removeFromCart, updateQuantity, clearCart, cartTotal, cartCount, isLoading, wishlist, toggleWishlist, isInWishlist }}>
+      {children}
+    </CartContext.Provider>
   );
+}
+
+export function useCart() {
+  const context = useContext(CartContext);
+  if (context === undefined) throw new Error('useCart must be used within CartProvider');
+  return context;
 }

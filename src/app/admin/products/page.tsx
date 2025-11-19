@@ -1,5 +1,4 @@
 "use client";
-
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
@@ -36,11 +35,10 @@ export default function AdminProductsPage() {
 
   const handleDelete = async (id: string) => {
     if (!confirm("¿Estás seguro de eliminar este producto?")) return;
-    
     try {
       await ApiClient.deleteProduct(id, token || undefined);
       toast({ title: "Producto eliminado", description: "El producto ha sido borrado correctamente." });
-      loadProducts(); // Recargar lista
+      loadProducts();
     } catch (error) {
       toast({ variant: "destructive", title: "Error", description: "No se pudo eliminar el producto." });
     }
@@ -76,7 +74,7 @@ export default function AdminProductsPage() {
                   <TableCell>
                     <div className="relative h-12 w-12 rounded overflow-hidden bg-muted">
                       <Image 
-                        src={product.imageId.startsWith('http') ? product.imageId : '/placeholder.png'} 
+                        src={(product.imageId && (product.imageId.startsWith('http') || product.imageId.startsWith('/'))) ? product.imageId : '/placeholder.png'} 
                         alt={product.name} 
                         fill 
                         className="object-cover" 

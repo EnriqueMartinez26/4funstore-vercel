@@ -17,11 +17,10 @@ export function GameCard({ game }: GameCardProps) {
   const { addToCart, toggleWishlist, isInWishlist } = useCart();
   const isWishlisted = isInWishlist(game.id);
 
-  // Lógica mejorada de imagen:
-  // 1. Si es URL http, úsala. 2. Si es string corto, usa placeholder.
-  const imageUrl = game.imageId.startsWith('http') 
+  // PERMITIR RUTAS LOCALES (empiezan con /)
+  const imageUrl = (game.imageId && (game.imageId.startsWith('http') || game.imageId.startsWith('/')))
     ? game.imageId 
-    : "/placeholder.png"; // Asegúrate de tener una imagen placeholder.png en /public
+    : "/placeholder.png";
 
   return (
     <Card className="flex h-full flex-col overflow-hidden transition-all hover:shadow-lg hover:-translate-y-1 group">
@@ -52,7 +51,6 @@ export function GameCard({ game }: GameCardProps) {
         <div className="flex items-start justify-between gap-4">
           <CardTitle className="font-headline text-lg leading-tight line-clamp-2">{game.name}</CardTitle>
           <div className="flex items-center gap-2 text-muted-foreground">
-             {/* Manejo seguro del objeto plataforma */}
              <PlatformIcon platformId={typeof game.platform === 'string' ? game.platform : game.platform?.id} />
           </div>
         </div>

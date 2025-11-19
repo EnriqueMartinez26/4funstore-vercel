@@ -20,4 +20,4 @@ export const genres: Genre[] = [
   { id: 'simulation', name: 'Simulación' },
 ];
 
-export const allGames: Game[] = []; 
+export const allGames: Game[] = [];

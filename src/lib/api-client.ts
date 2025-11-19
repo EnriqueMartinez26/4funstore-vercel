@@ -1,10 +1,10 @@
+import { platforms } from './data'; // Importar para resolver nombres de plataformas
+
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:9003';
 
-// ADAPTADOR: Backend (Español) <-> Frontend (Inglés)
 function adaptProduct(apiProduct: any): any {
   if (!apiProduct || typeof apiProduct !== 'object') return apiProduct;
 
-  // Si viene anidado (ej. en wishlist)
   if (apiProduct.productoId && !apiProduct.nombre) {
     return adaptProduct(apiProduct.productoId);
   }
@@ -16,14 +16,13 @@ function adaptProduct(apiProduct: any): any {
     price: apiProduct.precio,
     platform: typeof apiProduct.plataformaId === 'object' && apiProduct.plataformaId !== null
       ? { id: apiProduct.plataformaId._id || apiProduct.plataformaId.id, name: apiProduct.plataformaId.nombre } 
-      : { id: 'unknown', name: 'Plataforma' },
+      : { id: apiProduct.plataformaId || 'unknown', name: 'Plataforma' },
     genre: typeof apiProduct.generoId === 'object' && apiProduct.generoId !== null
       ? { id: apiProduct.generoId._id || apiProduct.generoId.id, name: apiProduct.generoId.nombre }
-      : { id: 'unknown', name: 'Género' },
+      : { id: apiProduct.generoId || 'unknown', name: 'Género' },
     type: apiProduct.tipo === 'Fisico' ? 'Physical' : 'Digital',
     releaseDate: apiProduct.fechaLanzamiento,
     developer: apiProduct.desarrollador,
-    // SOLUCIÓN IMÁGENES: Si no hay URL, usa una imagen por defecto
     imageId: apiProduct.imagenUrl || 'https://placehold.co/600x400/png?text=Sin+Imagen',
     rating: apiProduct.calificacion || 0,
     stock: apiProduct.stock || 0
@@ -62,7 +61,6 @@ export class ApiClient {
     return adaptProduct(data);
   }
 
-  // CREAR PRODUCTO (Convierte Inglés -> Español para el Backend)
   static async createProduct(productData: any, token?: string) {
     const headers: HeadersInit = token ? { Authorization: `Bearer ${token}` } : {};
     const backendPayload = {
@@ -81,7 +79,6 @@ export class ApiClient {
     return this.request('/products', { method: 'POST', headers, body: JSON.stringify(backendPayload) });
   }
 
-  // ACTUALIZAR PRODUCTO
   static async updateProduct(id: string, productData: any, token?: string) {
     const headers: HeadersInit = token ? { Authorization: `Bearer ${token}` } : {};
     const backendPayload = {
@@ -98,7 +95,6 @@ export class ApiClient {
     return this.request(`/products/${id}`, { method: 'PUT', headers, body: JSON.stringify(backendPayload) });
   }
 
-  // ELIMINAR PRODUCTO
   static async deleteProduct(id: string, token?: string) {
     const headers: HeadersInit = token ? { Authorization: `Bearer ${token}` } : {};
     return this.request(`/products/${id}`, { method: 'DELETE', headers });
@@ -106,33 +102,47 @@ export class ApiClient {
 
   static async getCategories() { return this.request('/categories'); }
 
-  // --- CARRITO & WISHLIST ---
+  // --- CARRITO ---
   static async getCart(userId?: string, token?: string) {
     if (!userId) return { cart: { items: [] } };
     const headers: HeadersInit = token ? { Authorization: `Bearer ${token}` } : {};
     const data = await this.request(`/cart/${userId}`, { headers });
+    
     if (data.cart?.items) {
-       data.cart.items = data.cart.items.map((item: any) => ({
-         ...item,
-         name: item.product?.nombre || item.name,
-         price: item.product?.precio || item.price,
-         image: item.product?.imagenUrl || item.image
-       }));
+       data.cart.items = data.cart.items.map((item: any) => {
+         // Resolver nombre de plataforma usando el ID del backend
+         const platId = item.product?.plataformaId;
+         const platName = platforms.find(p => p.id === platId)?.name || platId || 'Plataforma';
+
+         return {
+           ...item,
+           id: item._id,
+           productId: item.product?._id,
+           name: item.product?.nombre || item.name,
+           price: item.product?.precio || item.price,
+           image: item.product?.imagenUrl || item.image,
+           imageId: item.product?.imagenUrl,
+           platform: { id: platId, name: platName } // Mapeo corregido
+         };
+       });
     }
     return data;
   }
-  static async addToCart(productId: string, quantity: number, token?: string) {
-    return this.request('/cart', { method: 'POST', headers: { Authorization: `Bearer ${token}` }, body: JSON.stringify({ productId, quantity }) });
+
+  static async addToCart(userId: string, productId: string, quantity: number, token?: string) {
+    return this.request('/cart', { method: 'POST', headers: { Authorization: `Bearer ${token}` }, body: JSON.stringify({ userId, productId, quantity }) });
   }
-  static async removeFromCart(itemId: string, token?: string) {
-    return this.request(`/cart/${itemId}`, { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } });
+  static async removeFromCart(userId: string, itemId: string, token?: string) {
+    return this.request(`/cart/${userId}/${itemId}`, { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } });
   }
-  static async updateCartItem(productId: string, quantity: number, token?: string) {
-    return this.request('/cart', { method: 'PUT', headers: { Authorization: `Bearer ${token}` }, body: JSON.stringify({ productId, quantity }) });
+  static async updateCartItem(userId: string, itemId: string, quantity: number, token?: string) {
+    return this.request('/cart', { method: 'PUT', headers: { Authorization: `Bearer ${token}` }, body: JSON.stringify({ userId, itemId, quantity }) });
   }
-  static async clearCart(token?: string) {
-    return this.request('/cart', { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } });
+  static async clearCart(userId: string, token?: string) {
+    return this.request(`/cart/${userId}`, { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } });
   }
+
+  // --- WISHLIST & ORDERS ---
   static async getWishlist(userId: string, token?: string) {
     const headers: HeadersInit = token ? { Authorization: `Bearer ${token}` } : {};
     const data = await this.request(`/wishlist/${userId}`, { headers });
@@ -140,5 +150,9 @@ export class ApiClient {
   }
   static async toggleWishlist(userId: string, productId: string, token?: string) {
     return this.request('/wishlist/toggle', { method: 'POST', headers: { Authorization: `Bearer ${token}` }, body: JSON.stringify({ userId, productId }) });
+  }
+  static async createOrder(orderData: any, token?: string) {
+    const headers: HeadersInit = token ? { Authorization: `Bearer ${token}` } : {};
+    return this.request('/orders', { method: 'POST', headers, body: JSON.stringify(orderData) });
   }
 }
