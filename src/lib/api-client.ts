@@ -1,11 +1,31 @@
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
+
+function adaptProduct(apiProduct: any): any {
+  return {
+    id: apiProduct._id || apiProduct.id,
+    name: apiProduct.nombre,
+    description: apiProduct.descripcion,
+    price: apiProduct.precio,
+    platform: typeof apiProduct.plataformaId === 'object' 
+      ? { id: apiProduct.plataformaId.id, name: apiProduct.plataformaId.nombre } 
+      : { id: apiProduct.plataformaId, name: apiProduct.plataformaId },
+    genre: typeof apiProduct.generoId === 'object'
+      ? { id: apiProduct.generoId.id, name: apiProduct.generoId.nombre }
+      : { id: apiProduct.generoId, name: apiProduct.generoId },
+    type: apiProduct.tipo === 'Fisico' ? 'Physical' : 'Digital',
+    releaseDate: apiProduct.fechaLanzamiento,
+    developer: apiProduct.desarrollador,
+    imageId: apiProduct.imagenUrl,
+    rating: apiProduct.calificacion,
+    stock: apiProduct.stock
+  };
+}
 
 export class ApiClient {
-  private static async request<T>(
-    endpoint: string,
-    options: RequestInit = {}
-  ): Promise<T> {
-    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+  private static async request(endpoint: string, options: RequestInit = {}) {
+    const url = `${API_BASE_URL}/api${endpoint}`;
+    
+    const response = await fetch(url, {
       ...options,
       headers: {
         'Content-Type': 'application/json',
@@ -14,57 +34,77 @@ export class ApiClient {
     });
 
     if (!response.ok) {
-      throw new Error(`API Error: ${response.statusText}`);
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.message || `API Error: ${response.statusText}`);
     }
 
     return response.json();
   }
 
-  // Métodos para productos
   static async getProducts() {
-    return this.request('/productos');
+    const data = await this.request('/products');
+    return Array.isArray(data) ? data.map(adaptProduct) : [];
   }
 
   static async getProductById(id: string) {
-    return this.request(`/productos/${id}`);
+    const data = await this.request(`/products/${id}`);
+    return adaptProduct(data);
   }
 
-  // Métodos para usuarios
-  static async login(email: string, password: string) {
-    return this.request('/usuarios/login', {
+  static async getCategories() {
+    return this.request('/categories');
+  }
+
+  static async getCart(token?: string) {
+    const headers: HeadersInit = {};
+    if (token) headers.Authorization = `Bearer ${token}`;
+    const data = await this.request('/cart', { headers });
+    
+    if (data.cart && data.cart.items) {
+       data.cart.items = data.cart.items.map((item: any) => ({
+         ...item,
+         name: item.product?.nombre || item.name,
+         price: item.product?.precio || item.price
+       }));
+    }
+    return data;
+  }
+
+  static async addToCart(productId: string, quantity: number = 1, token?: string) {
+    const headers: HeadersInit = {};
+    if (token) headers.Authorization = `Bearer ${token}`;
+    return this.request('/cart', {
       method: 'POST',
-      body: JSON.stringify({ email, password }),
+      headers,
+      body: JSON.stringify({ productId, quantity }),
     });
   }
 
-  static async register(userData: any) {
-    return this.request('/usuarios/registro', {
-      method: 'POST',
-      body: JSON.stringify(userData),
+  static async updateCartItem(productId: string, quantity: number, token?: string) {
+    const headers: HeadersInit = {};
+    if (token) headers.Authorization = `Bearer ${token}`;
+    return this.request('/cart', {
+      method: 'PUT',
+      headers,
+      body: JSON.stringify({ productId, quantity }),
     });
   }
 
-  // Métodos para carrito
-  static async addToCart(userId: string, productId: string, cantidad: number) {
-    return this.request('/carrito/agregar', {
-      method: 'POST',
-      body: JSON.stringify({ usuarioId: userId, productoId: productId, cantidad }),
+  static async removeFromCart(productId: string, token?: string) {
+    const headers: HeadersInit = {};
+    if (token) headers.Authorization = `Bearer ${token}`;
+    return this.request(`/cart/${productId}`, {
+      method: 'DELETE',
+      headers,
     });
   }
 
-  static async getCart(userId: string) {
-    return this.request(`/carrito/${userId}`);
-  }
-
-  // Métodos para pedidos
-  static async createOrder(orderData: any) {
-    return this.request('/pedidos', {
-      method: 'POST',
-      body: JSON.stringify(orderData),
+  static async clearCart(token?: string) {
+    const headers: HeadersInit = {};
+    if (token) headers.Authorization = `Bearer ${token}`;
+    return this.request('/cart', {
+      method: 'DELETE',
+      headers,
     });
-  }
-
-  static async getUserOrders(userId: string) {
-    return this.request(`/pedidos/usuario/${userId}`);
   }
 }

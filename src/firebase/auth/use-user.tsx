@@ -10,15 +10,46 @@ export function useUser() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (auth) {
-      const unsubscribe = onAuthStateChanged(auth, (user) => {
-        setUser(user);
-        setLoading(false);
-      });
-      return () => unsubscribe();
-    } else {
+    if (!auth) {
+      // Si no hay auth disponible, intentar cargar usuario de localStorage
+      if (typeof window !== 'undefined') {
+        const storedUser = localStorage.getItem('user');
+        if (storedUser) {
+          try {
+            const parsedUser = JSON.parse(storedUser);
+            setUser({
+              uid: parsedUser.id || parsedUser.uid,
+              email: parsedUser.email,
+              displayName: parsedUser.nombre || parsedUser.displayName,
+            } as User);
+          } catch (error) {
+            console.error("Error parsing stored user:", error);
+          }
+        }
+      }
       setLoading(false);
+      return;
     }
+
+    const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
+      setUser(firebaseUser);
+      setLoading(false);
+      
+      // Sincronizar con localStorage
+      if (typeof window !== 'undefined') {
+        if (firebaseUser) {
+          localStorage.setItem('user', JSON.stringify({
+            uid: firebaseUser.uid,
+            email: firebaseUser.email,
+            displayName: firebaseUser.displayName,
+          }));
+        } else {
+          localStorage.removeItem('user');
+        }
+      }
+    });
+
+    return () => unsubscribe();
   }, [auth]);
 
   return { user, loading, auth };

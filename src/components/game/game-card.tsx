@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatCurrency, cn } from "@/lib/utils";
 import { Heart, ShoppingCart } from "lucide-react";
-import { useCart } from "@/context/cart-context";
+import { useCart } from "@/context/CartContext";
 import { PlaceHolderImages as placeholderImages } from "@/lib/placeholder-images";
 import { PlatformIcon } from "../icons";
 
