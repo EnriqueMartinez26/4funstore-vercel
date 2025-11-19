@@ -1,10 +1,12 @@
 import { GameCatalog } from '@/components/game/game-catalog';
-import { allGames } from '@/lib/data';
+import { ApiClient } from '@/lib/api-client';
 
-export default function ProductosPage() {
+export default async function ProductosPage() {
+  const games = await ApiClient.getProducts();
+  
   return (
     <div className="container mx-auto px-4">
-      <GameCatalog games={allGames} />
+      <GameCatalog games={games} />
     </div>
   );
 }
