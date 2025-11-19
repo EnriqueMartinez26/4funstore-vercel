@@ -1,11 +1,11 @@
-// Apunta al puerto 5000 por defecto
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+// Apuntamos al puerto 9003 como indicaste en tus .env
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:9003';
 
 // --- ADAPTADOR DE IDIOMA (Backend Español -> Frontend Inglés) ---
 function adaptProduct(apiProduct: any): any {
   if (!apiProduct || typeof apiProduct !== 'object') return apiProduct;
 
-  // Si viene anidado (ej. respuesta de wishlist populada)
+  // Si viene anidado (ej. wishlist)
   if (apiProduct.productoId && !apiProduct.nombre) {
     return adaptProduct(apiProduct.productoId);
   }
@@ -13,10 +13,9 @@ function adaptProduct(apiProduct: any): any {
   return {
     id: apiProduct._id || apiProduct.id,
     name: apiProduct.nombre,              // Español -> Inglés
-    description: apiProduct.descripcion,  // Español -> Inglés
-    price: apiProduct.precio,             // Español -> Inglés
+    description: apiProduct.descripcion,
+    price: apiProduct.precio,
     
-    // Mapeo seguro de objetos anidados (Plataforma/Género)
     platform: typeof apiProduct.plataformaId === 'object' && apiProduct.plataformaId !== null
       ? { id: apiProduct.plataformaId._id || apiProduct.plataformaId.id, name: apiProduct.plataformaId.nombre } 
       : { id: apiProduct.plataformaId, name: 'Plataforma' },
@@ -56,30 +55,19 @@ export class ApiClient {
 
   // --- AUTENTICACIÓN ---
   static async login(data: { email: string; password: string }) {
-    return this.request('/auth/login', {
-      method: 'POST',
-      body: JSON.stringify(data),
-    });
+    return this.request('/auth/login', { method: 'POST', body: JSON.stringify(data) });
   }
 
   static async register(data: { name: string; email: string; password: string }) {
-    return this.request('/auth/register', {
-      method: 'POST',
-      body: JSON.stringify(data),
-    });
+    return this.request('/auth/register', { method: 'POST', body: JSON.stringify(data) });
   }
 
   static async getProfile(token: string) {
-    return this.request('/auth/profile', {
-      headers: { Authorization: `Bearer ${token}` }
-    });
+    return this.request('/auth/profile', { headers: { Authorization: `Bearer ${token}` } });
   }
 
   static async logout(token: string) {
-    return this.request('/auth/logout', {
-      method: 'POST',
-      headers: { Authorization: `Bearer ${token}` }
-    });
+    return this.request('/auth/logout', { method: 'POST', headers: { Authorization: `Bearer ${token}` } });
   }
 
   // --- PRODUCTOS ---
@@ -93,11 +81,12 @@ export class ApiClient {
     return adaptProduct(data);
   }
 
+  // --- GESTIÓN: Crear Producto ---
   static async createProduct(productData: any, token?: string) {
     const headers: HeadersInit = {};
     if (token) headers.Authorization = `Bearer ${token}`;
 
-    // Convertimos Frontend (Inglés) -> Backend (Español)
+    // Convertir a formato Backend (Español)
     const backendPayload = {
       nombre: productData.name,
       descripcion: productData.description,
@@ -132,7 +121,6 @@ export class ApiClient {
     
     const data = await this.request(`/cart/${userId}`, { headers });
     
-    // Adaptar items dentro del carrito
     if (data.cart && data.cart.items) {
        data.cart.items = data.cart.items.map((item: any) => ({
          ...item,
