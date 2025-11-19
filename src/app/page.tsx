@@ -1,4 +1,3 @@
-
 import Image from 'next/image';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
@@ -6,7 +5,7 @@ import { PlaceHolderImages as placeholderImages } from '@/lib/placeholder-images
 import { platforms, genres } from '@/lib/data';
 import { PlatformIcon } from '@/components/icons';
 import { ArrowRight } from 'lucide-react';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card } from '@/components/ui/card';
 
 export default function Home() {
   const heroImage = placeholderImages.find(p => p.id === 'hero');
