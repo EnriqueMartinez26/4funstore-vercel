@@ -1,4 +1,4 @@
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:9003';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
 
 function adaptProduct(apiProduct: any): any {
   if (!apiProduct || typeof apiProduct !== 'object') return apiProduct;
@@ -46,10 +46,28 @@ export class ApiClient {
   static async logout(token: string) { return this.request('/auth/logout', { method: 'POST', headers: { Authorization: `Bearer ${token}` } }); }
 
   // Productos
-  static async getProducts() {
-    const data = await this.request('/products');
-    return Array.isArray(data) ? data.map(adaptProduct) : [];
+  static async getProducts(params?: { page?: number; limit?: number; search?: string }) {
+    const query = new URLSearchParams();
+    if (params?.page) query.append("page", params.page.toString());
+    if (params?.limit) query.append("limit", params.limit.toString());
+    if (params?.search) query.append("search", params.search);
+  
+    const queryString = query.toString() ? `?${query.toString()}` : "";
+    const data = await this.request(`/products${queryString}`);
+  
+    if (data.data && Array.isArray(data.data)) {
+      return {
+        products: data.data.map(adaptProduct),
+        meta: data.meta
+      };
+    }
+    
+    return {
+      products: Array.isArray(data) ? data.map(adaptProduct) : [],
+      meta: { total: 0, page: 1, limit: 10, totalPages: 1 }
+    };
   }
+
   static async getProductById(id: string) {
     const data = await this.request(`/products/${id}`);
     return adaptProduct(data);
@@ -73,11 +91,16 @@ export class ApiClient {
   }
   static async updateProduct(id: string, productData: any, token?: string) {
     const headers: HeadersInit = token ? { Authorization: `Bearer ${token}` } : {};
-    // Mismo payload que create (simplificado)
     const backendPayload = { 
-        nombre: productData.name, descripcion: productData.description, precio: parseFloat(productData.price),
-        stock: parseInt(productData.stock), imagenUrl: productData.imageUrl,
-        plataformaId: productData.platformId, generoId: productData.genreId
+        nombre: productData.name, 
+        descripcion: productData.description, 
+        precio: parseFloat(productData.price),
+        stock: parseInt(productData.stock), 
+        imagenUrl: productData.imageUrl,
+        plataformaId: productData.platformId, 
+        generoId: productData.genreId,
+        desarrollador: productData.developer,
+        tipo: productData.type === 'Physical' ? 'Fisico' : 'Digital'
     };
     return this.request(`/products/${id}`, { method: 'PUT', headers, body: JSON.stringify(backendPayload) });
   }
@@ -88,7 +111,7 @@ export class ApiClient {
   // Categorías
   static async getCategories() { return this.request('/categories'); }
 
-  // Carrito (CORREGIDO: Envía userId)
+  // Carrito
   static async getCart(userId?: string, token?: string) {
     if (!userId) return { cart: { items: [] } };
     const headers: HeadersInit = token ? { Authorization: `Bearer ${token}` } : {};
@@ -109,7 +132,7 @@ export class ApiClient {
     return this.request('/cart', { 
       method: 'POST', 
       headers: { Authorization: `Bearer ${token}` }, 
-      body: JSON.stringify({ userId, productId, quantity }) // <-- SOLUCIÓN AL ERROR DE VALIDACIÓN
+      body: JSON.stringify({ userId, productId, quantity }) 
     });
   }
   static async removeFromCart(userId: string, itemId: string, token?: string) {

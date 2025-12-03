@@ -8,37 +8,51 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Plus, Pencil, Trash2 } from "lucide-react";
+import { Loader2, Plus, Pencil, Trash2, ChevronLeft, ChevronRight } from "lucide-react";
 import { formatCurrency } from "@/lib/utils";
 
 export default function AdminProductsPage() {
   const { token, loading: authLoading } = useAuth();
   const [products, setProducts] = useState<any[]>([]);
+  const [meta, setMeta] = useState({ page: 1, totalPages: 1 });
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
-  const loadProducts = async () => {
+  const loadProducts = async (page = 1) => {
     try {
       setLoading(true);
-      const data = await ApiClient.getProducts();
-      setProducts(data);
+      const response = await ApiClient.getProducts({ page, limit: 10 });
+      
+      if (Array.isArray(response)) {
+         setProducts(response);
+      } else {
+         setProducts(response.products);
+         setMeta(response.meta);
+      }
     } catch (error) {
       console.error(error);
+      toast({ variant: "destructive", title: "Error", description: "No se pudieron cargar los productos." });
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    if (!authLoading) loadProducts();
+    if (!authLoading) loadProducts(1);
   }, [authLoading]);
+
+  const handlePageChange = (newPage: number) => {
+    if (newPage >= 1 && newPage <= meta.totalPages) {
+      loadProducts(newPage);
+    }
+  };
 
   const handleDelete = async (id: string) => {
     if (!confirm("¿Estás seguro de eliminar este producto?")) return;
     try {
       await ApiClient.deleteProduct(id, token || undefined);
-      toast({ title: "Producto eliminado", description: "El producto ha sido borrado correctamente." });
-      loadProducts();
+      toast({ title: "Producto eliminado", description: "El producto ha sido borrado correctamente (eliminación lógica)." });
+      loadProducts(meta.page); 
     } catch (error) {
       toast({ variant: "destructive", title: "Error", description: "No se pudo eliminar el producto." });
     }
@@ -56,7 +70,7 @@ export default function AdminProductsPage() {
       </div>
 
       <Card>
-        <CardHeader><CardTitle>Inventario ({products.length})</CardTitle></CardHeader>
+        <CardHeader><CardTitle>Inventario</CardTitle></CardHeader>
         <CardContent>
           <Table>
             <TableHeader>
@@ -96,6 +110,32 @@ export default function AdminProductsPage() {
               ))}
             </TableBody>
           </Table>
+
+          {/* Controles de Paginación */}
+          <div className="flex items-center justify-end space-x-2 py-4">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => handlePageChange(meta.page - 1)}
+              disabled={meta.page === 1}
+            >
+              <ChevronLeft className="h-4 w-4" />
+              Anterior
+            </Button>
+            <div className="text-sm font-medium">
+              Página {meta.page} de {meta.totalPages}
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => handlePageChange(meta.page + 1)}
+              disabled={meta.page === meta.totalPages}
+            >
+              Siguiente
+              <ChevronRight className="h-4 w-4" />
+            </Button>
+          </div>
+
         </CardContent>
       </Card>
     </div>

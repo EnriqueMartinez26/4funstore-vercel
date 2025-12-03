@@ -3,8 +3,8 @@ import { Button } from '@/components/ui/button';
 import { platforms, genres } from '@/lib/data';
 import { PlatformIcon } from '@/components/icons';
 import { Card } from '@/components/ui/card';
-import { PixelHero } from '@/components/pixel-hero'; // Importamos el nuevo componente
-import { GameRecommendations } from '@/components/game/recommendations'; // Asegurarnos de que las recomendaciones se mantengan
+import { PixelHero } from '@/components/pixel-hero'; 
+// ELIMINADA: import { GameRecommendations } from '@/components/game/recommendations'; 
 
 export default function Home() {
   return (
@@ -27,8 +27,7 @@ export default function Home() {
             </div>
         </section>
         
-        {/* Recomendaciones IA (Mantenemos esta feature existente) */}
-        <GameRecommendations />
+        {/* ELIMINADA: Sección de Recomendaciones IA */}
 
         <section>
             <h2 className="font-headline text-3xl font-bold md:text-4xl mb-8 text-center">Explorar por Género</h2>
