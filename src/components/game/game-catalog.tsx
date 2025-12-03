@@ -1,114 +1,131 @@
 "use client";
 
-import React, { useState, useMemo } from 'react';
-import type { Game } from '@/lib/types';
+import React from 'react';
 import { GameCard } from './game-card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { platforms, genres } from '@/lib/data'; // Asegúrate de que estos arrays tengan nombres en español si es posible, o tradúcelos aquí visualmente
+import { platforms, genres } from '@/lib/data';
 import { Slider } from '@/components/ui/slider';
 import { formatCurrency } from '@/lib/utils';
-import { ListFilter } from 'lucide-react';
+import { ListFilter, ChevronLeft, ChevronRight } from 'lucide-react';
+import type { Game } from '@/lib/types';
+import { useGameFilter } from '@/hooks/use-game-filter'; // Importamos el hook
 
 interface GameCatalogProps {
   games: Game[];
 }
 
 export function GameCatalog({ games }: GameCatalogProps) {
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedPlatform, setSelectedPlatform] = useState('all');
-  const [selectedGenre, setSelectedGenre] = useState('all');
-  const [priceRange, setPriceRange] = useState([0, 100]); // Ajustado el rango máximo
-
-  const filteredGames = useMemo(() => {
-    return games.filter(game => {
-      const matchesSearch = game.name.toLowerCase().includes(searchQuery.toLowerCase());
-      // Adaptación para que coincida con IDs que pueden ser strings o números según tu BD
-      const matchesPlatform = selectedPlatform === 'all' || game.platform.id.toString() === selectedPlatform;
-      const matchesGenre = selectedGenre === 'all' || game.genre.id.toString() === selectedGenre;
-      const matchesPrice = game.price >= priceRange[0] && game.price <= priceRange[1];
-      return matchesSearch && matchesPlatform && matchesGenre && matchesPrice;
-    });
-  }, [games, searchQuery, selectedPlatform, selectedGenre, priceRange]);
-
-  const resetFilters = () => {
-    setSearchQuery('');
-    setSelectedPlatform('all');
-    setSelectedGenre('all');
-    setPriceRange([0, 100]);
-  };
+  // Usamos el Custom Hook para toda la lógica
+  const {
+    searchQuery, setSearchQuery,
+    selectedPlatform, setSelectedPlatform,
+    selectedGenre, setSelectedGenre,
+    priceRange, setPriceRange,
+    paginatedGames,
+    totalGames,
+    currentPage,
+    totalPages,
+    setCurrentPage,
+    resetFilters
+  } = useGameFilter({ games, itemsPerPage: 8 });
 
   return (
     <section className="py-12 md:py-16">
       <div className="space-y-4 mb-8">
-        <h2 className="font-headline text-3xl font-bold md:text-4xl">Explora Nuestra Colección</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 items-end">
-          
-          {/* Buscador */}
-          <div className="md:col-span-2">
-             <Input
-               placeholder="Buscar por nombre..."
-               value={searchQuery}
-               onChange={(e) => setSearchQuery(e.target.value)}
-             />
-          </div>
-
-          {/* Filtro Plataforma */}
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+          <h2 className="font-headline text-3xl font-bold md:text-4xl">Explore Our Collection</h2>
+          <span className="text-muted-foreground text-sm">{totalGames} games found</span>
+        </div>
+        
+        {/* Filtros */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 items-end bg-muted/30 p-6 rounded-lg border border-border/50">
+          <Input
+            placeholder="Search by name..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="md:col-span-2 bg-background"
+          />
           <Select value={selectedPlatform} onValueChange={setSelectedPlatform}>
-            <SelectTrigger>
-              <SelectValue placeholder="Filtrar por Plataforma" />
+            <SelectTrigger className="bg-background">
+              <SelectValue placeholder="Filter by Platform" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">Todas las Plataformas</SelectItem>
+              <SelectItem value="all">All Platforms</SelectItem>
               {platforms.map(p => <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>)}
             </SelectContent>
           </Select>
-
-          {/* Filtro Género */}
           <Select value={selectedGenre} onValueChange={setSelectedGenre}>
-            <SelectTrigger>
-              <SelectValue placeholder="Filtrar por Género" />
+            <SelectTrigger className="bg-background">
+              <SelectValue placeholder="Filter by Genre" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">Todos los Géneros</SelectItem>
+              <SelectItem value="all">All Genres</SelectItem>
               {genres.map(g => <SelectItem key={g.id} value={g.id}>{g.name}</SelectItem>)}
             </SelectContent>
           </Select>
-
-          {/* Filtro Precio */}
           <div className="space-y-2 md:col-span-2 lg:col-span-3">
-            <label className="text-sm font-medium">Rango de Precio</label>
-            <div className='flex items-center gap-4'>
-                <Slider
-                    value={priceRange}
-                    onValueChange={(value) => setPriceRange(value)}
-                    max={100}
-                    step={1}
-                />
-                <div className="text-sm font-semibold w-32 text-center">
-                    {formatCurrency(priceRange[0])} - {formatCurrency(priceRange[1])}
-                </div>
-            </div>
+            <label className="text-sm font-medium flex justify-between">
+              <span>Price Range</span>
+              <span className="font-mono text-primary">{formatCurrency(priceRange[0])} - {formatCurrency(priceRange[1])}</span>
+            </label>
+            <Slider
+                value={priceRange}
+                onValueChange={(value) => setPriceRange(value)}
+                max={70}
+                step={1}
+                className="py-4"
+            />
           </div>
-
-          <Button onClick={resetFilters} variant="outline" className="w-full">
+          <Button onClick={resetFilters} variant="outline" className="w-full border-dashed">
             <ListFilter className="mr-2 h-4 w-4" />
-            Limpiar Filtros
+            Reset Filters
           </Button>
         </div>
       </div>
 
-      {filteredGames.length > 0 ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-          {filteredGames.map((game) => (
-            <GameCard key={game.id} game={game} />
-          ))}
-        </div>
+      {/* Grid de Productos */}
+      {paginatedGames.length > 0 ? (
+        <>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            {paginatedGames.map((game) => (
+              <GameCard key={game.id} game={game} />
+            ))}
+          </div>
+          
+          {/* Controles de Paginación */}
+          {totalPages > 1 && (
+            <div className="flex justify-center items-center gap-4 mt-12">
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                disabled={currentPage === 1}
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
+              <span className="text-sm font-medium">
+                Page {currentPage} of {totalPages}
+              </span>
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                disabled={currentPage === totalPages}
+              >
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+            </div>
+          )}
+        </>
       ) : (
-        <div className="text-center py-16">
-          <h3 className="font-headline text-2xl font-bold">No se encontraron juegos</h3>
-          <p className="text-muted-foreground mt-2">Intenta ajustar tus filtros para encontrar tu próxima aventura.</p>
+        <div className="text-center py-24 bg-muted/20 rounded-lg border-2 border-dashed">
+          <h3 className="font-headline text-2xl font-bold">No Games Found</h3>
+          <p className="text-muted-foreground mt-2">Try adjusting your filters to find your next adventure.</p>
+          <Button onClick={resetFilters} variant="link" className="mt-4 text-primary">
+            Clear all filters
+          </Button>
         </div>
       )}
     </section>
