@@ -1,28 +1,7 @@
+import { ProductSchema } from './schemas';
+import { z } from 'zod';
+
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
-
-function adaptProduct(apiProduct: any): any {
-  if (!apiProduct || typeof apiProduct !== 'object') return apiProduct;
-  if (apiProduct.productoId && !apiProduct.nombre) return adaptProduct(apiProduct.productoId);
-
-  return {
-    id: apiProduct._id || apiProduct.id,
-    name: apiProduct.nombre,
-    description: apiProduct.descripcion,
-    price: apiProduct.precio,
-    platform: typeof apiProduct.plataformaId === 'object' && apiProduct.plataformaId !== null
-      ? { id: apiProduct.plataformaId._id || apiProduct.plataformaId.id, name: apiProduct.plataformaId.nombre } 
-      : { id: apiProduct.plataformaId || 'unknown', name: 'Plataforma' },
-    genre: typeof apiProduct.generoId === 'object' && apiProduct.generoId !== null
-      ? { id: apiProduct.generoId._id || apiProduct.generoId.id, name: apiProduct.generoId.nombre }
-      : { id: apiProduct.generoId || 'unknown', name: 'Género' },
-    type: apiProduct.tipo === 'Fisico' ? 'Physical' : 'Digital',
-    releaseDate: apiProduct.fechaLanzamiento,
-    developer: apiProduct.desarrollador,
-    imageId: apiProduct.imagenUrl || 'https://placehold.co/600x400/png?text=Sin+Imagen',
-    rating: apiProduct.calificacion || 0,
-    stock: apiProduct.stock || 0
-  };
-}
 
 export class ApiClient {
   private static async request(endpoint: string, options: RequestInit = {}) {
@@ -30,24 +9,25 @@ export class ApiClient {
     const response = await fetch(url, {
       ...options,
       cache: 'no-store',
-      // INGENIERÍA: 'include' envía las cookies HttpOnly automáticamente al backend
-      credentials: 'include', 
+      credentials: 'include', // Cookies HttpOnly
       headers: { 'Content-Type': 'application/json', ...options.headers },
     });
+    
+    const data = await response.json();
+
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      throw new Error(errorData.message || `Error API: ${response.statusText}`);
+      throw new Error(data.message || `Error API: ${response.statusText}`);
     }
-    return response.json();
+    return data;
   }
 
-  // Auth - Ya no devuelven token explícito, lo maneja la cookie
+  // Auth
   static async login(data: any) { return this.request('/auth/login', { method: 'POST', body: JSON.stringify(data) }); }
   static async register(data: any) { return this.request('/auth/register', { method: 'POST', body: JSON.stringify(data) }); }
-  static async getProfile() { return this.request('/auth/profile'); } // Ya no requiere pasar token
-  static async logout() { return this.request('/auth/logout', { method: 'POST' }); } // Ya no requiere pasar token
+  static async getProfile() { return this.request('/auth/profile'); }
+  static async logout() { return this.request('/auth/logout', { method: 'POST' }); }
 
-  // Productos
+  // Productos con Validación Zod
   static async getProducts(params?: { page?: number; limit?: number; search?: string }) {
     const query = new URLSearchParams();
     if (params?.page) query.append("page", params.page.toString());
@@ -55,21 +35,34 @@ export class ApiClient {
     if (params?.search) query.append("search", params.search);
   
     const queryString = query.toString() ? `?${query.toString()}` : "";
-    const data = await this.request(`/products${queryString}`);
+    const response = await this.request(`/products${queryString}`);
   
-    if (data.data && Array.isArray(data.data)) {
-      return { products: data.data.map(adaptProduct), meta: data.meta };
+    // Validar y transformar la respuesta
+    // Nota: response.data es el array de productos crudos del backend
+    if (response.data && Array.isArray(response.data)) {
+      const parsedProducts = response.data.map((item: any) => {
+        try {
+          return ProductSchema.parse(item);
+        } catch (e) {
+          console.error("Error parseando producto:", item, e);
+          return null;
+        }
+      }).filter(Boolean); // Eliminar items fallidos
+
+      return { products: parsedProducts, meta: response.meta };
     }
-    return { products: Array.isArray(data) ? data.map(adaptProduct) : [], meta: { total: 0, page: 1, limit: 10, totalPages: 1 } };
+    
+    return { products: [], meta: { total: 0, page: 1, limit: 10, totalPages: 1 } };
   }
 
   static async getProductById(id: string) {
-    const data = await this.request(`/products/${id}`);
-    return adaptProduct(data);
+    const response = await this.request(`/products/${id}`);
+    // response.data contiene el producto
+    return ProductSchema.parse(response.data);
   }
   
-  // En métodos de escritura, ya no necesitamos pasar 'token' como argumento, la cookie va sola.
   static async createProduct(productData: any) {
+    // Mapeo inverso para enviar al backend (Frontend -> Backend)
     const backendPayload = {
       nombre: productData.name,
       descripcion: productData.description,
@@ -107,28 +100,37 @@ export class ApiClient {
   
   static async getCategories() { return this.request('/categories'); }
 
-  // Carrito y Wishlist: Simplificados al quitar el argumento 'token'
+  // Carrito y Wishlist (Adaptación ligera usando el Schema donde sea posible)
   static async getCart(userId?: string) {
     if (!userId) return { cart: { items: [] } };
     const data = await this.request(`/cart/${userId}`);
+    
     if (data.cart?.items) {
-       data.cart.items = data.cart.items.map((item: any) => ({
-         ...item,
-         id: item._id,
-         productId: item.product?._id,
-         name: item.product?.nombre || item.name,
-         price: item.product?.precio || item.price,
-         image: item.product?.imagenUrl || item.image
-       }));
+       data.cart.items = data.cart.items.map((item: any) => {
+         // Intentamos parsear el producto embebido si existe
+         let parsedProduct = null;
+         if (item.product) {
+            try {
+                parsedProduct = ProductSchema.parse(item.product);
+            } catch(e) { /* Fallback silencioso */ }
+         }
+
+         return {
+           ...item,
+           id: item._id,
+           productId: item.product?._id,
+           // Usamos datos parseados o fallbacks del item
+           name: parsedProduct?.name || item.name,
+           price: parsedProduct?.price || item.price,
+           image: parsedProduct?.imageId || item.image
+         };
+       });
     }
     return data;
   }
 
   static async addToCart(userId: string, productId: string, quantity: number) {
-    return this.request('/cart', { 
-      method: 'POST', 
-      body: JSON.stringify({ userId, productId, quantity }) 
-    });
+    return this.request('/cart', { method: 'POST', body: JSON.stringify({ userId, productId, quantity }) });
   }
 
   static async removeFromCart(userId: string, itemId: string) {
@@ -144,8 +146,15 @@ export class ApiClient {
   }
 
   static async getWishlist(userId: string) {
-    const data = await this.request(`/wishlist/${userId}`);
-    return Array.isArray(data.wishlist) ? data.wishlist.map(adaptProduct) : [];
+    const response = await this.request(`/wishlist/${userId}`);
+    if (Array.isArray(response.wishlist)) {
+        return response.wishlist.map((item: any) => {
+            try {
+                return ProductSchema.parse(item);
+            } catch { return null; }
+        }).filter(Boolean);
+    }
+    return [];
   }
 
   static async toggleWishlist(userId: string, productId: string) {

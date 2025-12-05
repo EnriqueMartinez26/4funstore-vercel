@@ -14,8 +14,6 @@ import { platforms, genres } from "@/lib/data";
 import { Loader2, Save, ArrowLeft, X } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
-
-// Importaciones para formularios y validación
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -79,8 +77,6 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
         setLoading(false);
     });
   }, [id, form, toast]);
-
-  // Función de subida a Cloudinary (misma que en new/page.tsx)
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
