@@ -1,15 +1,42 @@
 import { ProductSchema } from './schemas';
 import { z } from 'zod';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+// Configuración dinámica de la URL base
+const getBaseUrl = () => {
+  // Si estamos en el servidor (SSR), usamos la variable de entorno o localhost por defecto
+  if (typeof window === 'undefined') {
+    return process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+  }
+  
+  // Si estamos en el cliente, construimos la URL basada en el hostname actual
+  // Esto permite que funcione tanto en localhost como en 192.168.x.x sin cambiar .env
+  const hostname = window.location.hostname;
+  const port = '5000'; // Asegúrate de que este sea el puerto correcto de tu backend (5000 o 9003)
+  
+  // Si tienes una variable de entorno definida, la respetamos, 
+  // pero intentamos reemplazar 'localhost' por la IP si estamos navegando por IP
+  const envUrl = process.env.NEXT_PUBLIC_API_URL;
+  if (envUrl) {
+     if (envUrl.includes('localhost') && hostname !== 'localhost') {
+         return envUrl.replace('localhost', hostname);
+     }
+     return envUrl;
+  }
+
+  return `http://${hostname}:${port}`;
+};
 
 export class ApiClient {
   private static async request(endpoint: string, options: RequestInit = {}) {
-    const url = `${API_BASE_URL}/api${endpoint}`;
+    const baseUrl = getBaseUrl();
+    // Normalizamos para asegurar que /api no se duplique si ya viene en la base
+    const apiPath = baseUrl.endsWith('/api') ? '' : '/api';
+    const url = `${baseUrl}${apiPath}${endpoint}`;
+
     const response = await fetch(url, {
       ...options,
       cache: 'no-store',
-      credentials: 'include', // Cookies HttpOnly
+      credentials: 'include', // CRÍTICO: Esto envía la cookie HttpOnly
       headers: { 'Content-Type': 'application/json', ...options.headers },
     });
     
@@ -37,8 +64,6 @@ export class ApiClient {
     const queryString = query.toString() ? `?${query.toString()}` : "";
     const response = await this.request(`/products${queryString}`);
   
-    // Validar y transformar la respuesta
-    // Nota: response.data es el array de productos crudos del backend
     if (response.data && Array.isArray(response.data)) {
       const parsedProducts = response.data.map((item: any) => {
         try {
@@ -47,7 +72,7 @@ export class ApiClient {
           console.error("Error parseando producto:", item, e);
           return null;
         }
-      }).filter(Boolean); // Eliminar items fallidos
+      }).filter(Boolean);
 
       return { products: parsedProducts, meta: response.meta };
     }
@@ -57,12 +82,10 @@ export class ApiClient {
 
   static async getProductById(id: string) {
     const response = await this.request(`/products/${id}`);
-    // response.data contiene el producto
     return ProductSchema.parse(response.data);
   }
   
   static async createProduct(productData: any) {
-    // Mapeo inverso para enviar al backend (Frontend -> Backend)
     const backendPayload = {
       nombre: productData.name,
       descripcion: productData.description,
@@ -100,26 +123,21 @@ export class ApiClient {
   
   static async getCategories() { return this.request('/categories'); }
 
-  // Carrito y Wishlist (Adaptación ligera usando el Schema donde sea posible)
+  // Carrito y Wishlist
   static async getCart(userId?: string) {
     if (!userId) return { cart: { items: [] } };
     const data = await this.request(`/cart/${userId}`);
     
     if (data.cart?.items) {
        data.cart.items = data.cart.items.map((item: any) => {
-         // Intentamos parsear el producto embebido si existe
          let parsedProduct = null;
          if (item.product) {
-            try {
-                parsedProduct = ProductSchema.parse(item.product);
-            } catch(e) { /* Fallback silencioso */ }
+            try { parsedProduct = ProductSchema.parse(item.product); } catch(e) {}
          }
-
          return {
            ...item,
            id: item._id,
            productId: item.product?._id,
-           // Usamos datos parseados o fallbacks del item
            name: parsedProduct?.name || item.name,
            price: parsedProduct?.price || item.price,
            image: parsedProduct?.imageId || item.image
@@ -149,9 +167,7 @@ export class ApiClient {
     const response = await this.request(`/wishlist/${userId}`);
     if (Array.isArray(response.wishlist)) {
         return response.wishlist.map((item: any) => {
-            try {
-                return ProductSchema.parse(item);
-            } catch { return null; }
+            try { return ProductSchema.parse(item); } catch { return null; }
         }).filter(Boolean);
     }
     return [];
