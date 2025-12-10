@@ -8,34 +8,50 @@ export type Genre = {
   name: string;
 };
 
+// Coincide 1:1 con el toResponseDTO del Backend
 export type Game = {
   id: string;
   name: string;
   description: string;
   price: number;
-  platform: Platform;
-  genre: Genre;
+  platform: Platform; // Objeto completo
+  genre: Genre;       // Objeto completo
   type: 'Digital' | 'Physical';
   releaseDate: string;
   developer: string;
-  imageId: string;
+  imageId: string;    // Mapeado desde imagenUrl
   rating: number;
-  stock?: number;
+  stock: number;
+  active?: boolean;
 };
 
-export type Usuario = {
+// Unificamos User (eliminamos duplicidad de 'Usuario')
+export type User = {
   id: string;
-  nombre: string;
+  name: string;
   email: string;
-  rol: 'CLIENTE' | 'ADMIN';
-  activo: boolean;
+  role: 'user' | 'admin';
+  createdAt?: string;
 };
 
-export type CarritoItem = {
+export type CartItem = {
   id: string;
   productId: string;
   name: string;
   price: number;
   quantity: number;
   image?: string;
+  platformName?: string;
+};
+
+// Respuesta API Genérica
+export type ApiResponse<T> = {
+  success: boolean;
+  message?: string;
+  data?: T;
+  pagination?: {
+    total: number;
+    page: number;
+    pages: number;
+  };
 };
