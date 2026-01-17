@@ -36,6 +36,7 @@ const productSchema = z.object({
   type: z.enum(["Digital", "Physical"]),
   developer: z.string().min(1, "El desarrollador es requerido"),
   imageUrl: z.string().url("Debes subir una imagen válida"),
+  trailerUrl: z.string().optional(),
 });
 
 type ProductFormValues = z.infer<typeof productSchema>;
@@ -51,30 +52,31 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
   const form = useForm<ProductFormValues>({
     resolver: zodResolver(productSchema),
     defaultValues: {
-      name: "", description: "", price: 0, stock: 0, platformId: "", genreId: "", type: "Digital", developer: "", imageUrl: "",
+      name: "", description: "", price: 0, stock: 0, platformId: "", genreId: "", type: "Digital", developer: "", imageUrl: "", trailerUrl: "",
     },
   });
 
   useEffect(() => {
     if (id === 'new') return;
     ApiClient.getProductById(id).then(p => {
-       if(p) {
-         form.reset({
-           name: p.name,
-           description: p.description,
-           price: p.price,
-           stock: p.stock,
-           platformId: p.platform.id,
-           genreId: p.genre.id,
-           type: p.type as "Digital" | "Physical",
-           developer: p.developer,
-           imageUrl: p.imageId
-         });
-       }
-       setLoading(false);
+      if (p) {
+        form.reset({
+          name: p.name,
+          description: p.description,
+          price: p.price,
+          stock: p.stock,
+          platformId: p.platform.id,
+          genreId: p.genre.id,
+          type: p.type as "Digital" | "Physical",
+          developer: p.developer,
+          imageUrl: p.imageId,
+          trailerUrl: p.trailerUrl || ""
+        });
+      }
+      setLoading(false);
     }).catch(() => {
-        toast({ variant: "destructive", title: "Error", description: "No se pudo cargar el producto" });
-        setLoading(false);
+      toast({ variant: "destructive", title: "Error", description: "No se pudo cargar el producto" });
+      setLoading(false);
     });
   }, [id, form, toast]);
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -84,11 +86,11 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
     setIsUploading(true);
     const formData = new FormData();
     formData.append("file", file);
-    formData.append("upload_preset", "4fun_preset"); 
+    formData.append("upload_preset", "4fun_preset");
 
     try {
       const res = await fetch(
-        `https://api.cloudinary.com/v1_1/dxlbwdqop/image/upload`, 
+        `https://api.cloudinary.com/v1_1/dxlbwdqop/image/upload`,
         { method: "POST", body: formData }
       );
       if (!res.ok) throw new Error("Error Cloudinary");
@@ -106,12 +108,12 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
 
   const onSubmit = async (data: ProductFormValues) => {
     try {
-      await ApiClient.updateProduct(id, data); 
+      await ApiClient.updateProduct(id, data);
       toast({ title: "Éxito", description: "Producto actualizado correctamente." });
       router.push("/admin/products");
       router.refresh();
-    } catch (error) { 
-        toast({ variant: "destructive", title: "Error", description: "No se pudo actualizar" }); 
+    } catch (error) {
+      toast({ variant: "destructive", title: "Error", description: "No se pudo actualizar" });
     }
   };
 
@@ -126,7 +128,7 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
         <CardContent>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-              
+
               <FormField control={form.control} name="name" render={({ field }) => (
                 <FormItem><FormLabel>Nombre</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
               )} />
@@ -170,6 +172,10 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
 
               <FormField control={form.control} name="developer" render={({ field }) => (
                 <FormItem><FormLabel>Desarrollador</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
+              )} />
+
+              <FormField control={form.control} name="trailerUrl" render={({ field }) => (
+                <FormItem><FormLabel>URL del Trailer (Video)</FormLabel><FormControl><Input placeholder="https://..." {...field} /></FormControl><FormMessage /></FormItem>
               )} />
 
               <FormItem>

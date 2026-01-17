@@ -65,6 +65,7 @@ export const ProductSchema = z.preprocess((val: any) => {
   rating: z.coerce.number().default(0),
   releaseDate: z.string().or(z.date()).optional(),
   active: z.boolean().optional(),
+  trailerUrl: z.string().optional(),
 })).transform((data: any) => {
 
   // Lógica de resolución de Plataforma
@@ -115,7 +116,8 @@ export const ProductSchema = z.preprocess((val: any) => {
     developer: data.developer,
     rating: data.rating,
     releaseDate: data.releaseDate ? new Date(data.releaseDate).toISOString() : new Date().toISOString(),
-    active: data.active
+    active: data.active,
+    trailerUrl: data.trailerUrl
   };
 });
 

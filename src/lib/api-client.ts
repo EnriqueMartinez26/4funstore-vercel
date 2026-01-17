@@ -108,6 +108,7 @@ export class ApiClient {
       releaseDate: new Date(),
       developer: productData.developer,
       imageId: productData.imageUrl,    // Changed to imageId
+      trailerUrl: productData.trailerUrl, // Nuevo campo
       stock: parseInt(productData.stock),
       active: true
     };
@@ -122,6 +123,7 @@ export class ApiClient {
       price: Number(productData.price),
       stock: parseInt(String(productData.stock), 10), // Forzar entero
       imageId: productData.imageUrl,
+      trailerUrl: productData.trailerUrl, // Nuevo campo
       // Enviar ambos formatos de ID por seguridad
       platform: productData.platformId,
       platformId: productData.platformId,

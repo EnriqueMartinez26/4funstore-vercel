@@ -3,6 +3,8 @@
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import { useParams, useRouter } from "next/navigation";
+import Link from "next/link";
+import { useAuth } from "@/hooks/use-auth";
 import { ApiClient } from "@/lib/api-client";
 import type { Game } from "@/lib/types";
 import { useCart } from "@/context/CartContext";
@@ -17,12 +19,24 @@ import { useToast } from "@/hooks/use-toast";
 export default function ProductPage() {
     const { id } = useParams();
     const router = useRouter();
+    const { user } = useAuth();
     const { addToCart, toggleWishlist, isInWishlist } = useCart();
     const { toast } = useToast();
 
     const [game, setGame] = useState<Game | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
+
+    // Helper para detectar y formatear URLs de YouTube
+    const getEmbedUrl = (url: string) => {
+        if (!url) return null;
+        const youtubeRegex = /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/i;
+        const match = url.match(youtubeRegex);
+        if (match && match[1]) {
+            return { type: 'youtube', src: `https://www.youtube.com/embed/${match[1]}?autoplay=1&mute=1&loop=1&playlist=${match[1]}` };
+        }
+        return { type: 'video', src: url };
+    };
 
     const productId = Array.isArray(id) ? id[0] : id;
 
@@ -76,7 +90,9 @@ export default function ProductPage() {
                         <span>/</span>
                         <span className="text-foreground">{game.genre?.name || "General"}</span>
                     </div>
-                    <h1 className="text-4xl md:text-5xl font-headline font-bold mb-4 tracking-tight drop-shadow-xl">{game.name}</h1>
+                    <div className="flex items-center justify-between">
+                        <h1 className="text-4xl md:text-5xl font-headline font-bold mb-4 tracking-tight drop-shadow-xl">{game.name}</h1>
+                    </div>
                 </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 xl:gap-12">
@@ -84,16 +100,32 @@ export default function ProductPage() {
                     <div className="lg:col-span-2 space-y-10">
 
                         {/* Media Gallery / Main Image */}
-                        <div className="aspect-video w-full relative overflow-hidden rounded-xl shadow-xl bg-card/50 ring-1 ring-white/10 group">
-                            <Image
-                                src={imageUrl}
-                                alt={game.name}
-                                fill
-                                className="object-cover transition-transform duration-700 group-hover:scale-105"
-                                priority
-                            />
-                            {/* Overlay Gradient for text readability if needed */}
-                            <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-60" />
+                        <div className="aspect-video w-full relative overflow-hidden rounded-xl shadow-xl bg-black ring-1 ring-white/10 group">
+                            {(() => {
+                                const media = getEmbedUrl(game.trailerUrl || "");
+                                if (media?.type === 'youtube') {
+                                    return (
+                                        <iframe
+                                            src={media.src}
+                                            className="w-full h-full"
+                                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                            allowFullScreen
+                                        />
+                                    );
+                                } else {
+                                    return (
+                                        <video
+                                            src={media?.src || "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"}
+                                            poster={imageUrl}
+                                            autoPlay
+                                            muted
+                                            loop
+                                            controls
+                                            className="w-full h-full object-cover"
+                                        />
+                                    );
+                                }
+                            })()}
                         </div>
 
                         {/* Description */}
@@ -196,8 +228,8 @@ export default function ProductPage() {
                         </div>
                     </div>
                 </div>
-            </main>
-        </div>
+            </main >
+        </div >
     );
 }
 
