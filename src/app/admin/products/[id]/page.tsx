@@ -10,7 +10,6 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { platforms, genres } from "@/lib/data";
 import { Loader2, Save, ArrowLeft, X } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
@@ -48,6 +47,8 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
   const { toast } = useToast();
   const [loading, setLoading] = useState(true);
   const [isUploading, setIsUploading] = useState(false);
+  const [platforms, setPlatforms] = useState<any[]>([]);
+  const [genres, setGenres] = useState<any[]>([]);
 
   const form = useForm<ProductFormValues>({
     resolver: zodResolver(productSchema),
@@ -57,6 +58,16 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
   });
 
   useEffect(() => {
+    // 1. Fetch auxiliary data
+    Promise.all([
+      ApiClient.getPlatforms(),
+      ApiClient.getGenres()
+    ]).then(([pData, gData]) => {
+      setPlatforms(Array.isArray(pData) ? pData : (pData?.data || []));
+      setGenres(Array.isArray(gData) ? gData : (gData?.data || []));
+    }).catch(console.error);
+
+    // 2. Fetch Product data
     if (id === 'new') return;
     ApiClient.getProductById(id).then(p => {
       if (p) {

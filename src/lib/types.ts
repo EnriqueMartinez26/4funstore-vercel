@@ -1,12 +1,14 @@
-export type Platform = {
+// Entidad de Referencia Unificada (Backend Standard DTO)
+export interface ReferenceEntity {
   id: string;
   name: string;
-};
+  imageId: string; // Visual URL
+  active?: boolean;
+}
 
-export type Genre = {
-  id: string;
-  name: string;
-};
+export type Platform = ReferenceEntity;
+export type Genre = ReferenceEntity;
+export type Category = ReferenceEntity;
 
 // Coincide 1:1 con el toResponseDTO del Backend
 export type Game = {

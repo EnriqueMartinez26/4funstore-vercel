@@ -5,16 +5,14 @@ import { GameCard } from './game-card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { platforms, genres } from '@/lib/data';
 import { Loader2, ListFilter, ChevronLeft, ChevronRight } from 'lucide-react';
 import type { Game } from '@/lib/types';
 import { ApiClient } from '@/lib/api-client';
+import { useRouter, useSearchParams } from 'next/navigation';
 
 interface GameCatalogProps {
   initialGames: Game[];
 }
-
-import { useRouter, useSearchParams } from 'next/navigation';
 
 export function GameCatalog({ initialGames }: GameCatalogProps) {
   const router = useRouter();
@@ -32,13 +30,33 @@ export function GameCatalog({ initialGames }: GameCatalogProps) {
   const [minPrice, setMinPrice] = useState('');
   const [maxPrice, setMaxPrice] = useState('');
 
+  // Estado para las listas de filtros (Dinámico)
+  const [platforms, setPlatforms] = useState<any[]>([]);
+  const [genres, setGenres] = useState<any[]>([]);
+
   // Estado para la paginación
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
 
   // UseRef para evitar el fetch inicial (ya tenemos data del servidor)
-  // Nota: Si hay búsqueda inicial en URL, QUEREMOS que haga fetch, así que validamos eso.
   const isFirstRender = React.useRef(!initialSearch);
+
+  // Cargar filtros dinámicos al montar
+  useEffect(() => {
+    const loadFilters = async () => {
+      try {
+        const [pData, gData] = await Promise.all([
+          ApiClient.getPlatforms(),
+          ApiClient.getGenres()
+        ]);
+        setPlatforms(Array.isArray(pData) ? pData : (pData?.data || []));
+        setGenres(Array.isArray(gData) ? gData : (gData?.data || []));
+      } catch (e) {
+        console.error("Error loading filters:", e);
+      }
+    };
+    loadFilters();
+  }, []);
 
   // Filtrado Frontend de Precios
   const displayedGames = games.filter(game => {

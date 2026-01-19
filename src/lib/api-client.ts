@@ -139,7 +139,81 @@ export class ApiClient {
     return this.request(`/products/${id}`, { method: 'DELETE' });
   }
 
-  static async getCategories() { return this.request('/categories'); }
+  static async deleteProductsBulk(ids: string[]) {
+    return this.request('/products/multi', {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ids })
+    });
+  }
+
+  // Categories
+  static async getCategories() {
+    const res = await this.request('/categories');
+    return res.data || res;
+  }
+  static async getCategoryById(id: string) { return this.request(`/categories/${id}`); }
+  static async createCategory(data: any) {
+    return this.request('/categories', { method: 'POST', body: JSON.stringify(data) });
+  }
+  static async updateCategory(id: string, data: any) {
+    return this.request(`/categories/${id}`, { method: 'PUT', body: JSON.stringify(data) });
+  }
+  static async deleteCategory(id: string) {
+    return this.request(`/categories/${id}`, { method: 'DELETE' });
+  }
+  static async deleteCategoriesBulk(ids: string[]) {
+    return this.request('/categories/multi', {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ids })
+    });
+  }
+
+  // Gestión de Visuales (Plataformas y Géneros)
+  static async getPlatforms() {
+    const res = await this.request('/platforms');
+    return res.data || res;
+  }
+  static async getPlatformById(id: string) { return this.request(`/platforms/${id}`); }
+  static async createPlatform(data: any) {
+    return this.request('/platforms', { method: 'POST', body: JSON.stringify(data) });
+  }
+  static async updatePlatform(id: string, data: any) {
+    return this.request(`/platforms/${id}`, { method: 'PUT', body: JSON.stringify(data) });
+  }
+  static async deletePlatform(id: string) {
+    return this.request(`/platforms/${id}`, { method: 'DELETE' });
+  }
+  static async deletePlatformsBulk(ids: string[]) {
+    return this.request(`/platforms/multi`, {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ids })
+    });
+  }
+
+  static async getGenres() {
+    const res = await this.request('/genres');
+    return res.data || res;
+  }
+  static async getGenreById(id: string) { return this.request(`/genres/${id}`); }
+  static async createGenre(data: any) {
+    return this.request('/genres', { method: 'POST', body: JSON.stringify(data) });
+  }
+  static async updateGenre(id: string, data: any) {
+    return this.request(`/genres/${id}`, { method: 'PUT', body: JSON.stringify(data) });
+  }
+  static async deleteGenre(id: string) {
+    return this.request(`/genres/${id}`, { method: 'DELETE' });
+  }
+  static async deleteGenresBulk(ids: string[]) {
+    return this.request(`/genres/multi`, {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ids })
+    });
+  }
 
   // Carrito
   static async getCart(userId?: string) {

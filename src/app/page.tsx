@@ -1,34 +1,43 @@
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { platforms, genres } from '@/lib/data';
 import { PixelHero } from '@/components/pixel-hero';
 // ELIMINADA: import { GameRecommendations } from '@/components/game/recommendations';
 import { CategoryCard } from '@/components/game/category-card';
-
-// Mapeo de imágenes para géneros (Placeholders de alta calidad)
-const genreImages: Record<string, string> = {
-  action: "https://images.unsplash.com/photo-1552820728-8b83bb6b773f?q=80&w=600&auto=format&fit=crop", // Action/Gaming
-  rpg: "https://images.unsplash.com/photo-1519074069444-1ba4fff66d16?q=80&w=600&auto=format&fit=crop", // Fantasy
-  strategy: "https://images.unsplash.com/photo-1535025183041-0991a977e25b?q=80&w=600&auto=format&fit=crop", // Strategy/Board
-  adventure: "https://images.unsplash.com/photo-1627856013091-bf7405299498?q=80&w=600&auto=format&fit=crop", // Jungle/Adventure
-  sports: "https://images.unsplash.com/photo-1579952363873-27f3bade9f55?q=80&w=600&auto=format&fit=crop", // Sports/Soccer
-  racing: "https://images.unsplash.com/photo-1547754980-3df97fed72a8?q=80&w=600&auto=format&fit=crop", // Cars
-  shooter: "https://images.unsplash.com/photo-1595769816263-9b910be24d5f?q=80&w=600&auto=format&fit=crop", // FPS controller
-  simulation: "https://images.unsplash.com/photo-1593118247619-e2d6f056869e?q=80&w=600&auto=format&fit=crop", // Sim/Joystick
-};
-
+import { ApiClient } from '@/lib/api-client';
 // Fallback image
 const defaultImage = "https://images.unsplash.com/photo-1550745165-9bc0b252726f?q=80&w=600";
 
-// Mapeo de imágenes para plataformas
-const platformImages: Record<string, string> = {
-  ps5: "https://images.unsplash.com/photo-1606144042614-b2417e99c4e3?q=80&w=600&auto=format&fit=crop", // PS5 Controller/Console
-  xbox: "https://images.unsplash.com/photo-1605901309584-818e25960b8f?q=80&w=600&auto=format&fit=crop", // Xbox Series X
-  switch: "https://images.unsplash.com/photo-1578303512597-81e6cc155b3e?q=80&w=600&auto=format&fit=crop", // Switch Joycons
-  pc: "https://images.unsplash.com/photo-1587202372775-e229f172b9d7?q=80&w=600&auto=format&fit=crop", // Gaming Setup
-};
+export default async function Home() {
+  // 1. Fetch data from Backend
+  let platformsData: any[] = [];
+  let genresData: any[] = [];
 
-export default function Home() {
+  try {
+    const [pData, gData] = await Promise.all([
+      ApiClient.getPlatforms().catch(() => []),
+      ApiClient.getGenres().catch(() => [])
+    ]);
+
+    // Handle potential response structures (array or object with data property)
+    platformsData = Array.isArray(pData) ? pData : (pData?.data || []);
+    genresData = Array.isArray(gData) ? gData : (gData?.data || []);
+  } catch (error) {
+    console.error("Error fetching home visuals:", error);
+  }
+
+  // 2. Map Backend Data to UI Format
+  const platforms = platformsData.map((p: any) => ({
+    id: p.id,
+    name: p.name,
+    image: (p.imageId && (p.imageId.startsWith('http') || p.imageId.startsWith('/'))) ? p.imageId : defaultImage
+  }));
+
+  const genres = genresData.map((g: any) => ({
+    id: g.id,
+    name: g.name,
+    image: (g.imageId && (g.imageId.startsWith('http') || g.imageId.startsWith('/'))) ? g.imageId : defaultImage
+  }));
+
   return (
     <div className="flex flex-col gap-12 md:gap-16">
       {/* Reemplazamos el Hero antiguo con el nuevo PixelHero basado en la imagen sugerida */}
@@ -48,8 +57,8 @@ export default function Home() {
               <CategoryCard
                 key={platform.id}
                 title={platform.name}
-                image={platformImages[platform.id] || defaultImage}
-                href="/productos"
+                image={platform.image}
+                href={`/productos?platform=${platform.id}`}
               />
             ))}
           </div>
@@ -76,8 +85,8 @@ export default function Home() {
               <CategoryCard
                 key={genre.id}
                 title={genre.name}
-                image={genreImages[genre.id] || defaultImage}
-                href="/productos"
+                image={genre.image}
+                href={`/productos?genre=${genre.id}`}
               />
             ))}
           </div>

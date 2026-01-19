@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/use-auth";
 import { ApiClient } from "@/lib/api-client";
@@ -10,7 +10,6 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { platforms, genres } from "@/lib/data"
 import { Loader2, X } from "lucide-react";
 import Image from "next/image";
 
@@ -48,6 +47,18 @@ export default function NewProductPage() {
   const { token } = useAuth();
   const { toast } = useToast();
   const [isUploading, setIsUploading] = useState(false);
+  const [platforms, setPlatforms] = useState<any[]>([]);
+  const [genres, setGenres] = useState<any[]>([]);
+
+  useEffect(() => {
+    Promise.all([
+      ApiClient.getPlatforms(),
+      ApiClient.getGenres()
+    ]).then(([pData, gData]) => {
+      setPlatforms(Array.isArray(pData) ? pData : (pData?.data || []));
+      setGenres(Array.isArray(gData) ? gData : (gData?.data || []));
+    }).catch(console.error);
+  }, []);
 
   const form = useForm<ProductFormValues>({
     resolver: zodResolver(productSchema),
@@ -72,20 +83,20 @@ export default function NewProductPage() {
     setIsUploading(true);
     const formData = new FormData();
     formData.append("file", file);
-    
+
     // TUS CREDENCIALES AQUI:
-    formData.append("upload_preset", "4fun_preset"); 
+    formData.append("upload_preset", "4fun_preset");
 
     try {
       const res = await fetch(
-        `https://api.cloudinary.com/v1_1/dxlbwdqop/image/upload`, 
+        `https://api.cloudinary.com/v1_1/dxlbwdqop/image/upload`,
         { method: "POST", body: formData }
       );
-      
+
       if (!res.ok) throw new Error("Error en la subida a Cloudinary");
 
       const data = await res.json();
-      
+
       if (data.secure_url) {
         form.setValue("imageUrl", data.secure_url);
         toast({ title: "Imagen subida correctamente" });
@@ -100,15 +111,15 @@ export default function NewProductPage() {
 
   const onSubmit = async (data: ProductFormValues) => {
     try {
-      await ApiClient.createProduct(data); 
+      await ApiClient.createProduct(data);
       toast({ title: "Éxito", description: "Producto publicado correctamente." });
       router.push("/admin/products");
       router.refresh();
     } catch (error: any) {
-      toast({ 
-        variant: "destructive", 
-        title: "Error", 
-        description: error.message || "No se pudo crear el producto." 
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: error.message || "No se pudo crear el producto."
       });
     }
   };
@@ -122,7 +133,7 @@ export default function NewProductPage() {
         <CardContent>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-              
+
               <FormField control={form.control} name="name" render={({ field }) => (
                 <FormItem><FormLabel>Nombre</FormLabel><FormControl><Input placeholder="Ej: God of War" {...field} /></FormControl><FormMessage /></FormItem>
               )} />

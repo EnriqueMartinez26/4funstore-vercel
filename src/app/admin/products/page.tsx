@@ -12,6 +12,7 @@ import { Loader2, Plus, Pencil, Trash2, ChevronLeft, ChevronRight } from "lucide
 import { formatCurrency } from "@/lib/utils";
 import type { Product } from "@/lib/schemas"; // Import strict Product type
 import type { Meta } from "@/lib/types"; // Import strict Meta type
+import { VisualsManager } from "@/components/admin/visuals-manager";
 
 export default function AdminProductsPage() {
   const { loading: authLoading } = useAuth();
@@ -61,15 +62,16 @@ export default function AdminProductsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold font-headline">Gestión de Productos</h1>
-        <Button asChild>
-          <Link href="/admin/products/new"><Plus className="mr-2 h-4 w-4" /> Nuevo Producto</Link>
-        </Button>
-      </div>
-
       <Card>
-        <CardHeader><CardTitle>Inventario</CardTitle></CardHeader>
+        <CardHeader className="space-y-4">
+          <h1 className="text-3xl font-bold font-headline">Gestión de Productos</h1>
+          <div className="flex items-center justify-between">
+            <p className="text-sm text-muted-foreground">Inventario</p>
+            <Button asChild>
+              <Link href="/admin/products/new"><Plus className="mr-2 h-4 w-4" /> Nuevo Producto</Link>
+            </Button>
+          </div>
+        </CardHeader>
         <CardContent>
           <Table>
             <TableHeader>
@@ -138,6 +140,9 @@ export default function AdminProductsPage() {
 
         </CardContent>
       </Card>
-    </div>
+
+      {/* Gestión de Visuales (Plataformas y Géneros) */}
+      <VisualsManager />
+    </div >
   );
 }

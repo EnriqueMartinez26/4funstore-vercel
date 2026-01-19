@@ -34,29 +34,30 @@ export const PixelHero = ({
     name: title,
     description: description,
     price: price,
-    platform: { id: 'pc', name: 'PC' },
-    genre: { id: 'rpg', name: 'RPG' },
+    platform: { id: 'pc', name: 'PC', imageId: '' },
+    genre: { id: 'rpg', name: 'RPG', imageId: '' },
     type: 'Digital',
     releaseDate: '2024-01-01',
     developer: 'Neon Studios',
     imageId: 'cyber-odyssey',
-    rating: 5
+    rating: 5,
+    stock: 100
   };
 
   return (
     <section className="relative w-full overflow-hidden bg-background py-12 md:py-24 lg:py-32">
       {/* Fondo decorativo "Pixel/Grid" */}
-      <div className="absolute inset-0 z-0 opacity-[0.03]" 
-           style={{ 
-             backgroundImage: 'linear-gradient(to right, currentColor 1px, transparent 1px), linear-gradient(to bottom, currentColor 1px, transparent 1px)',
-             backgroundSize: '40px 40px' 
-           }} 
+      <div className="absolute inset-0 z-0 opacity-[0.03]"
+        style={{
+          backgroundImage: 'linear-gradient(to right, currentColor 1px, transparent 1px), linear-gradient(to bottom, currentColor 1px, transparent 1px)',
+          backgroundSize: '40px 40px'
+        }}
       />
       <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-b from-background via-transparent to-background z-0" />
-      
+
       <div className="container relative z-10 mx-auto px-4">
         <div className="grid gap-8 lg:grid-cols-2 lg:gap-16 items-center">
-          
+
           {/* Columna de Texto */}
           <div className="space-y-8 animate-in slide-in-from-left duration-700 fade-in">
             <div className="flex flex-wrap gap-2">
@@ -66,7 +67,7 @@ export const PixelHero = ({
                 </Badge>
               ))}
             </div>
-            
+
             <div className="space-y-4">
               <h1 className="font-headline text-4xl font-bold tracking-tighter sm:text-5xl md:text-6xl lg:text-7xl text-primary drop-shadow-sm">
                 {title}
@@ -77,18 +78,18 @@ export const PixelHero = ({
             </div>
 
             <div className="flex flex-col sm:flex-row gap-4">
-              <Button 
-                size="lg" 
+              <Button
+                size="lg"
                 className="bg-primary hover:bg-primary/90 text-primary-foreground font-headline text-lg h-14 px-8 shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all duration-300"
                 onClick={() => addToCart(gameObj)}
               >
                 <ShoppingCart className="mr-2 h-5 w-5" />
                 Comprar {formatCurrency(price)}
               </Button>
-              
-              <Button 
-                variant="outline" 
-                size="lg" 
+
+              <Button
+                variant="outline"
+                size="lg"
                 className="h-14 px-8 border-2 border-primary/10 hover:bg-primary/5 hover:border-primary/30 text-foreground transition-all"
                 asChild
               >
@@ -103,7 +104,7 @@ export const PixelHero = ({
           <div className="relative group perspective-1000 animate-in slide-in-from-right duration-700 fade-in delay-200">
             {/* Elemento decorativo detrás */}
             <div className="absolute -inset-2 bg-gradient-to-r from-primary to-accent rounded-2xl blur-xl opacity-20 group-hover:opacity-40 transition duration-1000 group-hover:duration-200" />
-            
+
             <Card className="relative overflow-hidden rounded-2xl border border-primary/10 bg-card p-2 shadow-2xl transition-transform duration-500 hover:scale-[1.01]">
               <div className="relative aspect-video overflow-hidden rounded-xl bg-muted">
                 <Image
@@ -114,7 +115,7 @@ export const PixelHero = ({
                   priority
                   sizes="(max-width: 768px) 100vw, 50vw"
                 />
-                
+
                 {/* Overlay de estilo "Glitch" o tech */}
                 <div className="absolute inset-0 bg-gradient-to-t from-background/90 via-transparent to-transparent opacity-60 md:opacity-0 md:group-hover:opacity-100 transition-opacity duration-300 flex items-end p-6">
                   <div className="flex items-center gap-2 text-foreground font-mono bg-background/80 backdrop-blur-sm px-3 py-1 rounded-full border border-border/50">

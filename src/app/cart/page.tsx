@@ -7,8 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatCurrency } from "@/lib/utils";
-// --- CORRECCIÓN: Importar placeholderImages que faltaba ---
-import { PlaceHolderImages as placeholderImages } from "@/lib/placeholder-images"; 
+
 import { Trash2, ShoppingBag } from "lucide-react";
 
 export default function CartPage() {
@@ -17,7 +16,7 @@ export default function CartPage() {
   return (
     <div className="container mx-auto max-w-screen-lg px-4 py-8 md:py-12">
       <h1 className="font-headline text-3xl md:text-4xl font-bold mb-8">Tu Carrito</h1>
-      
+
       {cart.length === 0 ? (
         <div className="text-center py-16 border-2 border-dashed rounded-lg">
           <ShoppingBag className="mx-auto h-16 w-16 text-muted-foreground" />
@@ -32,24 +31,20 @@ export default function CartPage() {
           <div className="lg:col-span-2 space-y-4">
             {cart.map((item) => {
               // Buscar imagen local si existe por ID
-              const placeholder = placeholderImages.find(p => p.id === item.imageId);
-              
 
-              const imageUrl = placeholder 
-                ? placeholder.imageUrl 
-                : (item.image && (item.image.startsWith('http') || item.image.startsWith('/')) 
-                    ? item.image 
-                    : "https://placehold.co/600x400/png?text=Sin+Imagen");
+              const imageUrl = (item.image && (item.image.startsWith('http') || item.image.startsWith('/')))
+                ? item.image
+                : "https://placehold.co/600x400/png?text=Sin+Imagen";
 
               return (
                 <Card key={item.id} className="flex items-center p-4">
                   <div className="relative h-24 w-20 flex-shrink-0 overflow-hidden rounded-md bg-secondary">
-                     <Image 
-                       src={imageUrl} 
-                       alt={item.name || "Producto"} 
-                       fill 
-                       className="object-cover" 
-                     />
+                    <Image
+                      src={imageUrl}
+                      alt={item.name || "Producto"}
+                      fill
+                      className="object-cover"
+                    />
                   </div>
                   <div className="ml-4 flex-1">
                     <h3 className="font-headline font-semibold">{item.name || "Desconocido"}</h3>
@@ -90,7 +85,7 @@ export default function CartPage() {
                   <span>Impuestos</span>
                   <span className="text-muted-foreground text-sm">Calculado al pagar</span>
                 </div>
-                 <div className="flex justify-between font-bold text-lg pt-4 border-t">
+                <div className="flex justify-between font-bold text-lg pt-4 border-t">
                   <span>Total</span>
                   <span>{formatCurrency(cartTotal)}</span>
                 </div>

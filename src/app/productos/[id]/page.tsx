@@ -47,7 +47,7 @@ export default function ProductPage() {
             try {
                 setLoading(true);
                 const data = await ApiClient.getProductById(productId);
-                setGame(data);
+                setGame(data as unknown as Game);
             } catch (err) {
                 console.error("Error fetching product:", err);
                 setError("No pudimos cargar el juego. Puede que no exista o haya un error.");
@@ -212,6 +212,16 @@ export default function ProductPage() {
                                         <Heart className={cn("mr-2 h-5 w-5", isWishlisted && "fill-current")} />
                                         {isWishlisted ? "En tu Lista de Deseos" : "Añadir a Lista de Deseos"}
                                     </Button>
+
+                                    {/* Botón Admin en Sidebar */}
+                                    {user?.role === 'admin' && (
+                                        <Button asChild variant="ghost" size="lg" className="w-full h-12 text-muted-foreground hover:text-foreground hover:bg-white/5 border border-transparent hover:border-white/10">
+                                            <Link href={`/admin/products/${game.id}`}>
+                                                <Gamepad2 className="mr-2 h-4 w-4" />
+                                                Editar Producto
+                                            </Link>
+                                        </Button>
+                                    )}
                                 </div>
                             </div>
 
