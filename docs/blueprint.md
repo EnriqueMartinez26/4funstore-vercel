@@ -1,4 +1,4 @@
-# **App Name**: PixelPlay Marketplace
+# **App Name**: 4Fun Marketplace
 
 ## Core Features:
 

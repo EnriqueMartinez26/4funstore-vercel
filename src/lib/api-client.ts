@@ -10,6 +10,13 @@ const getBaseUrl = () => {
   return '';
 };
 
+export class ApiError extends Error {
+  constructor(public message: string, public status: number, public data?: any) {
+    super(message);
+    this.name = 'ApiError';
+  }
+}
+
 export class ApiClient {
   private static async request(endpoint: string, options: RequestInit = {}) {
     const baseUrl = getBaseUrl();
@@ -26,16 +33,40 @@ export class ApiClient {
     const data = await response.json();
 
     if (!response.ok) {
-      throw new Error(data.message || `Error API: ${response.statusText}`);
+      // Intentar extraer el mensaje de error de varios formatos comunes
+      const errorMessage = data.message || data.error || (Array.isArray(data.errors) ? data.errors.map((e: any) => e.msg || e.message).join(', ') : JSON.stringify(data.errors)) || `Error API: ${response.statusText}`;
+
+      if (response.status === 401) {
+        console.debug(`[API Auth] 401 Unauthorized:`, errorMessage);
+      } else {
+        console.error(`[API Error] ${endpoint} (${response.status}):`, errorMessage);
+      }
+      throw new ApiError(errorMessage, response.status, data);
     }
     return data;
   }
 
   // Auth
-  static async login(data: any) { return this.request('/auth/login', { method: 'POST', body: JSON.stringify(data) }); }
-  static async register(data: any) { return this.request('/auth/register', { method: 'POST', body: JSON.stringify(data) }); }
-  static async getProfile() { return this.request('/auth/profile'); }
+  static async login(data: { email: string; password: string }) { return this.request('/auth/login', { method: 'POST', body: JSON.stringify(data) }); }
+  static async register(data: { name: string; email: string; password: string }) { return this.request('/auth/register', { method: 'POST', body: JSON.stringify(data) }); }
+
+  static async getProfile() {
+    try {
+      return await this.request('/auth/profile');
+    } catch (error: any) {
+      // Si no estamos autenticados (401), retornamos success: false limpiamente
+      if (error.status === 401 || error?.response?.status === 401 || (error instanceof ApiError && error.status === 401)) {
+        return { success: false, user: null };
+      }
+      throw error;
+    }
+  }
   static async logout() { return this.request('/auth/logout', { method: 'POST' }); }
+
+  // Contacto
+  static async sendContactMessage(data: { firstName: string, lastName: string, email: string, message: string }) {
+    return this.request('/contact', { method: 'POST', body: JSON.stringify(data) });
+  }
 
   // Productos
   static async getProducts(params?: {
