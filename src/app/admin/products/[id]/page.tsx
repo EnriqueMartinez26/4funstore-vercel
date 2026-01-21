@@ -25,6 +25,12 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 
+const DEVELOPERS = [
+  'Nintendo', 'Sony Interactive Entertainment', 'Xbox Game Studios', 'Tencent Games', 'Ubisoft', 'Electronic Arts (EA)', 'Take-Two Interactive', 'Activision Blizzard', 'Capcom', 'Bandai Namco Entertainment'
+] as const;
+
+const SPEC_PRESETS = ['Low', 'Mid', 'High'] as const;
+
 const productSchema = z.object({
   name: z.string().min(3, "El nombre debe tener al menos 3 caracteres"),
   description: z.string().min(10, "La descripción debe ser más detallada"),
@@ -33,7 +39,12 @@ const productSchema = z.object({
   platformId: z.string().min(1, "Selecciona una plataforma"),
   genreId: z.string().min(1, "Selecciona un género"),
   type: z.enum(["Digital", "Physical"]),
-  developer: z.string().min(1, "El desarrollador es requerido"),
+  developer: z.enum(DEVELOPERS, {
+    errorMap: () => ({ message: "Selecciona un desarrollador válido" })
+  }),
+  specPreset: z.enum(SPEC_PRESETS, {
+    errorMap: () => ({ message: "Selecciona un preset de requisitos" })
+  }),
   imageUrl: z.string().url("Debes subir una imagen válida"),
   trailerUrl: z.string().optional(),
 });
@@ -53,7 +64,7 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
   const form = useForm<ProductFormValues>({
     resolver: zodResolver(productSchema),
     defaultValues: {
-      name: "", description: "", price: 0, stock: 0, platformId: "", genreId: "", type: "Digital", developer: "", imageUrl: "", trailerUrl: "",
+      name: "", description: "", price: 0, stock: 0, platformId: "", genreId: "", type: "Digital", developer: "Nintendo", specPreset: "Mid", imageUrl: "", trailerUrl: "",
     },
   });
 
@@ -79,7 +90,8 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
           platformId: p.platform.id,
           genreId: p.genre.id,
           type: p.type as "Digital" | "Physical",
-          developer: p.developer,
+          developer: p.developer as any, // Cast to any to avoid error if DB has old value
+          specPreset: (p.specPreset || "Mid") as any, // Default to Mid if not present
           imageUrl: p.imageId,
           trailerUrl: p.trailerUrl || ""
         });
@@ -113,8 +125,13 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
       toast({ title: "Éxito", description: "Producto actualizado correctamente." });
       router.push("/admin/products");
       router.refresh();
-    } catch (error) {
-      toast({ variant: "destructive", title: "Error", description: "No se pudo actualizar" });
+    } catch (error: any) {
+      const msg = error.message || "";
+      if (msg.includes("400")) {
+        toast({ variant: "destructive", title: "Error de validación", description: "Verifica que el desarrollador sea válido" });
+      } else {
+        toast({ variant: "destructive", title: "Error", description: "No se pudo actualizar" });
+      }
     }
   };
 
@@ -172,7 +189,29 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
               </div>
 
               <FormField control={form.control} name="developer" render={({ field }) => (
-                <FormItem><FormLabel>Desarrollador</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
+                <FormItem>
+                  <FormLabel>Desarrollador</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <FormControl><SelectTrigger><SelectValue placeholder="Seleccionar empresa" /></SelectTrigger></FormControl>
+                    <SelectContent>
+                      {DEVELOPERS.map((dev) => (<SelectItem key={dev} value={dev}>{dev}</SelectItem>))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )} />
+
+              <FormField control={form.control} name="specPreset" render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Requisitos de PC (Preset)</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <FormControl><SelectTrigger><SelectValue placeholder="Nivel de requisitos" /></SelectTrigger></FormControl>
+                    <SelectContent>
+                      {SPEC_PRESETS.map((preset) => (<SelectItem key={preset} value={preset}>{preset}</SelectItem>))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
               )} />
 
               <FormField control={form.control} name="trailerUrl" render={({ field }) => (

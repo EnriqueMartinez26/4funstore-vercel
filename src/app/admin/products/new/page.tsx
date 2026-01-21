@@ -27,6 +27,12 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 
+const DEVELOPERS = [
+  'Nintendo', 'Sony Interactive Entertainment', 'Xbox Game Studios', 'Tencent Games', 'Ubisoft', 'Electronic Arts (EA)', 'Take-Two Interactive', 'Activision Blizzard', 'Capcom', 'Bandai Namco Entertainment'
+] as const;
+
+const SPEC_PRESETS = ['Low', 'Mid', 'High'] as const;
+
 // Esquema de Validación
 const productSchema = z.object({
   name: z.string().min(3, "El nombre debe tener al menos 3 caracteres"),
@@ -36,7 +42,12 @@ const productSchema = z.object({
   platformId: z.string().min(1, "Selecciona una plataforma"),
   genreId: z.string().min(1, "Selecciona un género"),
   type: z.enum(["Digital", "Physical"]),
-  developer: z.string().min(1, "El desarrollador es requerido"),
+  developer: z.enum(DEVELOPERS, {
+    errorMap: () => ({ message: "Selecciona un desarrollador válido" })
+  }),
+  specPreset: z.enum(SPEC_PRESETS, {
+    errorMap: () => ({ message: "Selecciona un preset de requisitos" })
+  }),
   imageUrl: z.string().url("Debes subir una imagen válida"),
 });
 
@@ -70,7 +81,8 @@ export default function NewProductPage() {
       platformId: "",
       genreId: "",
       type: "Digital",
-      developer: "",
+      developer: "Nintendo",
+      specPreset: "Mid",
       imageUrl: "",
     },
   });
@@ -101,11 +113,20 @@ export default function NewProductPage() {
       router.push("/admin/products");
       router.refresh();
     } catch (error: any) {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: error.message || "No se pudo crear el producto."
-      });
+      const msg = error.message || "";
+      if (msg.includes("400")) {
+        toast({
+          variant: "destructive",
+          title: "Error de validación",
+          description: "Verifica que el desarrollador sea válido"
+        });
+      } else {
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: msg || "No se pudo crear el producto."
+        });
+      }
     }
   };
 
@@ -160,7 +181,29 @@ export default function NewProductPage() {
               </div>
 
               <FormField control={form.control} name="developer" render={({ field }) => (
-                <FormItem><FormLabel>Desarrollador</FormLabel><FormControl><Input placeholder="Ej: Nintendo" {...field} /></FormControl><FormMessage /></FormItem>
+                <FormItem>
+                  <FormLabel>Desarrollador</FormLabel>
+                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <FormControl><SelectTrigger><SelectValue placeholder="Seleccionar empresa" /></SelectTrigger></FormControl>
+                    <SelectContent>
+                      {DEVELOPERS.map((dev) => (<SelectItem key={dev} value={dev}>{dev}</SelectItem>))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )} />
+
+              <FormField control={form.control} name="specPreset" render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Requisitos de PC (Preset)</FormLabel>
+                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <FormControl><SelectTrigger><SelectValue placeholder="Nivel de requisitos" /></SelectTrigger></FormControl>
+                    <SelectContent>
+                      {SPEC_PRESETS.map((preset) => (<SelectItem key={preset} value={preset}>{preset}</SelectItem>))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
               )} />
 
               <FormItem>

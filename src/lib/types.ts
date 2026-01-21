@@ -26,6 +26,14 @@ export type Game = {
   stock: number;
   active?: boolean;
   trailerUrl?: string; // URL del video/trailer
+  specPreset?: 'Low' | 'Mid' | 'High'; // Preset de requisitos de PC
+  requisitos?: {
+    os: string;
+    processor: string;
+    memory: string;
+    graphics: string;
+    storage: string;
+  };
 };
 
 // Unificamos User (eliminamos duplicidad de 'Usuario')

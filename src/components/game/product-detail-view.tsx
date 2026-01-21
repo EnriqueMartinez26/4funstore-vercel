@@ -102,34 +102,44 @@ export function ProductDetailView({ game }: ProductDetailViewProps) {
                             </div>
                         </div>
 
-                        {/* System Requirements (MOCK) */}
-                        <div className="bg-card/30 rounded-xl p-6 border border-white/5">
-                            <h3 className="text-xl font-bold mb-4 flex items-center gap-2">
-                                <Monitor className="h-5 w-5 text-primary" />
-                                Requisitos del Sistema
-                            </h3>
-                            {/* We use mock data here as the backend doesn't provide it yet */}
-                            <div className="grid md:grid-cols-2 gap-6 text-sm">
-                                <div>
-                                    <strong className="block text-foreground mb-2">Mínimos</strong>
-                                    <ul className="space-y-1 text-muted-foreground">
-                                        <li>OS: Windows 10 64-bit</li>
-                                        <li>Processor: Intel Core i5-4460 or AMD FX-6300</li>
-                                        <li>Memory: 8 GB RAM</li>
-                                        <li>Graphics: NVIDIA GeForce GTX 760 or AMD Radeon R7 260x</li>
-                                    </ul>
+                        {/* System Requirements (Real from Backend) */}
+                        {game.requisitos ? (
+                            <div className="bg-card/30 rounded-xl p-6 border border-white/5">
+                                <h3 className="text-xl font-bold mb-4 flex items-center gap-2">
+                                    <Monitor className="h-5 w-5 text-primary" />
+                                    Requisitos del Sistema Recomendados
+                                </h3>
+                                <div className="space-y-2 text-sm">
+                                    <div className="flex justify-between py-2 border-b border-white/5">
+                                        <span className="text-muted-foreground font-medium">Sistema Operativo:</span>
+                                        <span className="text-foreground">{game.requisitos.os}</span>
+                                    </div>
+                                    <div className="flex justify-between py-2 border-b border-white/5">
+                                        <span className="text-muted-foreground font-medium">Procesador:</span>
+                                        <span className="text-foreground text-right max-w-[60%]">{game.requisitos.processor}</span>
+                                    </div>
+                                    <div className="flex justify-between py-2 border-b border-white/5">
+                                        <span className="text-muted-foreground font-medium">Memoria RAM:</span>
+                                        <span className="text-foreground">{game.requisitos.memory}</span>
+                                    </div>
+                                    <div className="flex justify-between py-2 border-b border-white/5">
+                                        <span className="text-muted-foreground font-medium">Tarjeta Gráfica:</span>
+                                        <span className="text-foreground text-right max-w-[60%]">{game.requisitos.graphics}</span>
+                                    </div>
+                                    <div className="flex justify-between py-2">
+                                        <span className="text-muted-foreground font-medium">Almacenamiento:</span>
+                                        <span className="text-foreground">{game.requisitos.storage}</span>
+                                    </div>
                                 </div>
-                                <div>
-                                    <strong className="block text-foreground mb-2">Recomendados</strong>
-                                    <ul className="space-y-1 text-muted-foreground">
-                                        <li>OS: Windows 10/11 64-bit</li>
-                                        <li>Processor: Intel Core i7-3770 or AMD FX-9590</li>
-                                        <li>Memory: 16 GB RAM</li>
-                                        <li>Graphics: NVIDIA GeForce GTX 1060 or AMD Radeon RX 480</li>
-                                    </ul>
-                                </div>
+                                {game.specPreset && (
+                                    <div className="mt-4 pt-4 border-t border-white/10">
+                                        <span className="text-xs text-muted-foreground">
+                                            Perfil de requisitos: <span className="font-bold text-primary">{game.specPreset === 'Low' ? 'Gama Baja' : game.specPreset === 'Mid' ? 'Gama Media' : 'Gama Alta'}</span>
+                                        </span>
+                                    </div>
+                                )}
                             </div>
-                        </div>
+                        ) : null}
                     </div>
 
                     {/* --- RIGHT COL: SIDEBAR (Sticky) --- */}
