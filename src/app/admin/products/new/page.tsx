@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/use-auth";
-import { ApiClient } from "@/lib/api-client";
+import { ApiClient } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -75,32 +75,17 @@ export default function NewProductPage() {
     },
   });
 
-  // Función de subida a Cloudinary con tus credenciales
+  // Función de subida a Cloudinary centralizada
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
     setIsUploading(true);
-    const formData = new FormData();
-    formData.append("file", file);
-
-    // TUS CREDENCIALES AQUI:
-    formData.append("upload_preset", "4fun_preset");
 
     try {
-      const res = await fetch(
-        `https://api.cloudinary.com/v1_1/dxlbwdqop/image/upload`,
-        { method: "POST", body: formData }
-      );
-
-      if (!res.ok) throw new Error("Error en la subida a Cloudinary");
-
-      const data = await res.json();
-
-      if (data.secure_url) {
-        form.setValue("imageUrl", data.secure_url);
-        toast({ title: "Imagen subida correctamente" });
-      }
+      const url = await ApiClient.uploadImage(file);
+      form.setValue("imageUrl", url);
+      toast({ title: "Imagen subida correctamente" });
     } catch (error) {
       console.error("Upload error:", error);
       toast({ variant: "destructive", title: "Error al subir imagen" });

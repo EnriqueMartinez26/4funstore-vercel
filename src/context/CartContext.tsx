@@ -1,6 +1,6 @@
 'use client';
 import { createContext, useContext, useEffect, useState } from 'react';
-import { ApiClient } from '@/lib/api-client';
+import { ApiClient } from '@/lib/api';
 import { useAuth } from '@/hooks/use-auth';
 import type { Game } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast'; // Feedback visual añadido

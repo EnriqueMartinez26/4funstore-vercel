@@ -1,6 +1,7 @@
 import { ProductSchema, type Product } from './schemas';
 import type { PaginatedResponse } from './types';
 import { z } from 'zod';
+import { Logger } from './logger';
 
 const getBaseUrl = () => {
   if (typeof window === 'undefined') {
@@ -37,9 +38,9 @@ export class ApiClient {
       const errorMessage = data.message || data.error || (Array.isArray(data.errors) ? data.errors.map((e: any) => e.msg || e.message).join(', ') : JSON.stringify(data.errors)) || `Error API: ${response.statusText}`;
 
       if (response.status === 401) {
-        console.debug(`[API Auth] 401 Unauthorized:`, errorMessage);
+        Logger.debug(`[API Auth] 401 Unauthorized:`, errorMessage);
       } else {
-        console.error(`[API Error] ${endpoint} (${response.status}):`, errorMessage);
+        Logger.error(`[API Error] ${endpoint} (${response.status}):`, errorMessage);
       }
       throw new ApiError(errorMessage, response.status, data);
     }
@@ -62,6 +63,27 @@ export class ApiClient {
     }
   }
   static async logout() { return this.request('/auth/logout', { method: 'POST' }); }
+
+  // Cloudinary Upload (Centralized)
+  static async uploadImage(file: File): Promise<string> {
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("upload_preset", "4fun_preset");
+
+    const res = await fetch(`https://api.cloudinary.com/v1_1/dxlbwdqop/image/upload`, {
+      method: "POST",
+      body: formData
+    });
+
+    if (!res.ok) throw new Error("Error Cloudinary");
+    const data = await res.json();
+
+    if (!data.secure_url) {
+      throw new Error("Failed to get secure url from Cloudinary");
+    }
+
+    return data.secure_url;
+  }
 
   // Contacto
   static async sendContactMessage(data: { firstName: string, lastName: string, email: string, message: string }) {
@@ -112,7 +134,7 @@ export class ApiClient {
 
     const parsedProducts = rawProducts.map((item: any) => {
       try { return ProductSchema.parse(item); } catch (e) {
-        console.error("Product parse error:", e);
+        Logger.error("Product parse error:", e);
         return null;
       }
     }).filter(Boolean) as Product[];
@@ -257,7 +279,7 @@ export class ApiClient {
           try {
             parsedProduct = ProductSchema.parse(item.product);
           } catch (e) {
-            console.error(`[ApiClient] Failed to parse product for cart item ${item._id}:`, e);
+            Logger.error(`[ApiClient] Failed to parse product for cart item ${item._id}:`, e);
           }
         }
         return {

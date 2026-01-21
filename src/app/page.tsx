@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { PixelHero } from '@/components/pixel-hero';
 // ELIMINADA: import { GameRecommendations } from '@/components/game/recommendations';
 import { CategoryCard } from '@/components/game/category-card';
-import { ApiClient } from '@/lib/api-client';
+import { ApiClient } from '@/lib/api';
 // Fallback image
 const defaultImage = "https://images.unsplash.com/photo-1550745165-9bc0b252726f?q=80&w=600";
 

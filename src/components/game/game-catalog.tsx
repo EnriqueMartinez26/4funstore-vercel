@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Loader2, ChevronLeft, ChevronRight, SlidersHorizontal } from 'lucide-react';
 import type { Game } from '@/lib/types';
-import { ApiClient } from '@/lib/api-client';
+import { ApiClient } from '@/lib/api';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { CatalogSidebar } from './catalog-sidebar';
 import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle } from '@/components/ui/sheet';

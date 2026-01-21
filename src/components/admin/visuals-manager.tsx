@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Image from "next/image";
-import { ApiClient } from "@/lib/api-client";
+import { ApiClient } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -270,17 +270,10 @@ function CreateDialog({ type, onUpdate, label }: { type: VisualType, onUpdate: (
         const file = e.target.files?.[0];
         if (!file) return;
         setIsUploading(true);
-        const formData = new FormData();
-        formData.append("file", file);
-        formData.append("upload_preset", "4fun_preset");
         try {
-            const res = await fetch(`https://api.cloudinary.com/v1_1/dxlbwdqop/image/upload`, { method: "POST", body: formData });
-            if (!res.ok) throw new Error("Error Cloudinary");
-            const data = await res.json();
-            if (data.secure_url) {
-                setImageUrl(data.secure_url);
-                toast({ title: "Imagen subida" });
-            }
+            const url = await ApiClient.uploadImage(file);
+            setImageUrl(url);
+            toast({ title: "Imagen subida" });
         } catch {
             toast({ variant: "destructive", title: "Error al subir imagen" });
         } finally {
@@ -393,17 +386,10 @@ function EditDialog({ itemId, type, onUpdate }: { itemId: string, type: VisualTy
         const file = e.target.files?.[0];
         if (!file) return;
         setIsUploading(true);
-        const formData = new FormData();
-        formData.append("file", file);
-        formData.append("upload_preset", "4fun_preset");
         try {
-            const res = await fetch(`https://api.cloudinary.com/v1_1/dxlbwdqop/image/upload`, { method: "POST", body: formData });
-            if (!res.ok) throw new Error("Error Cloudinary");
-            const data = await res.json();
-            if (data.secure_url) {
-                setImageUrl(data.secure_url);
-                toast({ title: "Imagen subida" });
-            }
+            const url = await ApiClient.uploadImage(file);
+            setImageUrl(url);
+            toast({ title: "Imagen subida" });
         } catch {
             toast({ variant: "destructive", title: "Error al subir imagen" });
         } finally {

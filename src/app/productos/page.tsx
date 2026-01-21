@@ -1,5 +1,5 @@
 import { GameCatalog } from '@/components/game/game-catalog';
-import { ApiClient } from '@/lib/api-client';
+import { ApiClient } from '@/lib/api';
 
 export default async function ProductosPage() {
   // Nota: Esto se ejecuta en el servidor al cargar la página por primera vez. Cacheamos por 60s.

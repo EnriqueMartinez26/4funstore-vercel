@@ -3,7 +3,7 @@
 import { useEffect, useState, use } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/use-auth";
-import { ApiClient } from "@/lib/api-client";
+import { ApiClient } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -95,21 +95,11 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
     if (!file) return;
 
     setIsUploading(true);
-    const formData = new FormData();
-    formData.append("file", file);
-    formData.append("upload_preset", "4fun_preset");
 
     try {
-      const res = await fetch(
-        `https://api.cloudinary.com/v1_1/dxlbwdqop/image/upload`,
-        { method: "POST", body: formData }
-      );
-      if (!res.ok) throw new Error("Error Cloudinary");
-      const data = await res.json();
-      if (data.secure_url) {
-        form.setValue("imageUrl", data.secure_url);
-        toast({ title: "Imagen actualizada" });
-      }
+      const url = await ApiClient.uploadImage(file);
+      form.setValue("imageUrl", url);
+      toast({ title: "Imagen actualizada" });
     } catch (error) {
       toast({ variant: "destructive", title: "Error al subir imagen" });
     } finally {
