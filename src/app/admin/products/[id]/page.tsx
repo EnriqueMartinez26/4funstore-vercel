@@ -16,6 +16,7 @@ import Image from "next/image";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Form,
   FormControl,
@@ -24,6 +25,7 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import { KeyManager } from "@/components/admin/key-manager";
 
 const DEVELOPERS = [
   'Nintendo', 'Sony Interactive Entertainment', 'Xbox Game Studios', 'Tencent Games', 'Ubisoft', 'Electronic Arts (EA)', 'Take-Two Interactive', 'Activision Blizzard', 'Capcom', 'Bandai Namco Entertainment'
@@ -47,6 +49,11 @@ const productSchema = z.object({
   }),
   imageUrl: z.string().url("Debes subir una imagen válida"),
   trailerUrl: z.string().optional(),
+  // Discount Fields
+  isDiscounted: z.boolean().default(false),
+  originalPrice: z.coerce.number().optional(),
+  discountPercentage: z.coerce.number().min(0).max(100).optional(),
+  discountEndDate: z.string().optional(),
 });
 
 type ProductFormValues = z.infer<typeof productSchema>;
@@ -54,7 +61,7 @@ type ProductFormValues = z.infer<typeof productSchema>;
 export default function EditProductPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const router = useRouter();
-  const { token } = useAuth();
+  const { user } = useAuth();
   const { toast } = useToast();
   const [loading, setLoading] = useState(true);
   const [isUploading, setIsUploading] = useState(false);
@@ -65,6 +72,7 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
     resolver: zodResolver(productSchema),
     defaultValues: {
       name: "", description: "", price: 0, stock: 0, platformId: "", genreId: "", type: "Digital", developer: "Nintendo", specPreset: "Mid", imageUrl: "", trailerUrl: "",
+      isDiscounted: false, originalPrice: 0, discountPercentage: 0, discountEndDate: "",
     },
   });
 
@@ -85,7 +93,6 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
         form.reset({
           name: p.name,
           description: p.description,
-          price: p.price,
           stock: p.stock,
           platformId: p.platform.id,
           genreId: p.genre.id,
@@ -93,7 +100,18 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
           developer: p.developer as any, // Cast to any to avoid error if DB has old value
           specPreset: (p.specPreset || "Mid") as any, // Default to Mid if not present
           imageUrl: p.imageId,
-          trailerUrl: p.trailerUrl || ""
+          trailerUrl: p.trailerUrl || "",
+          // Discount Fields
+          // Si hay precio original, significa que hay descuento.
+          // En ese caso, el input "price" del formulario debe mostrar el PRECIO ORIGINAL (para que el usuario lo edite fácil)
+          // Si no hay descuento, price muestra el precio real.
+          isDiscounted: !!p.originalPrice && p.originalPrice > 0,
+          originalPrice: 0, // No usamos este campo en el UI, se calcula en submit
+          discountPercentage: p.discountPercentage || 0,
+          discountEndDate: p.discountEndDate ? new Date(p.discountEndDate).toISOString().split('T')[0] : "",
+
+          // Override price logic for UI:
+          price: (p.originalPrice && p.originalPrice > 0) ? p.originalPrice : p.price
         });
       }
       setLoading(false);
@@ -121,14 +139,33 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
 
   const onSubmit = async (data: ProductFormValues) => {
     try {
-      await ApiClient.updateProduct(id, data);
+      const payload: any = { ...data };
+
+      // Lógica de Descuento
+      if (data.isDiscounted) {
+        // Si hay descuento activado:
+        // 1. El valor en el input 'price' se convierte en el Precio Original (base)
+        payload.originalPrice = data.price;
+        // 2. El precio real de venta se calcula restando el porcentaje
+        const discountDec = (data.discountPercentage || 0) / 100;
+        payload.price = Number((data.price * (1 - discountDec)).toFixed(2));
+      } else {
+        // Si NO hay descuento:
+        // 1. El valor en el input 'price' es el precio real
+        // 2. Limpiamos campos de descuento
+        payload.originalPrice = 0; // o null
+        payload.discountPercentage = 0;
+        payload.discountEndDate = "";
+      }
+
+      await ApiClient.updateProduct(id, payload);
       toast({ title: "Éxito", description: "Producto actualizado correctamente." });
       router.push("/admin/products");
       router.refresh();
     } catch (error: any) {
       const msg = error.message || "";
       if (msg.includes("400")) {
-        toast({ variant: "destructive", title: "Error de validación", description: "Verifica que el desarrollador sea válido" });
+        toast({ variant: "destructive", title: "Error de validación", description: "Verifica los datos ingresados" });
       } else {
         toast({ variant: "destructive", title: "Error", description: "No se pudo actualizar" });
       }
@@ -163,6 +200,45 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
                   <FormItem><FormLabel>Stock</FormLabel><FormControl><Input type="number" {...field} /></FormControl><FormMessage /></FormItem>
                 )} />
               </div>
+
+              <FormField control={form.control} name="isDiscounted" render={({ field }) => (
+                <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
+                  <FormControl>
+                    <Checkbox
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                    />
+                  </FormControl>
+                  <div className="space-y-1 leading-none">
+                    <FormLabel>Producto con descuento</FormLabel>
+                  </div>
+                </FormItem>
+              )} />
+
+              {/* Discount Section (Conditional) */}
+              {form.watch('isDiscounted') && (
+                <div className="border rounded-lg p-4 space-y-4 bg-muted/20 animate-in fade-in slide-in-from-top-2 duration-300">
+                  <h3 className="font-semibold text-lg">💰 Descuento</h3>
+                  <div className="grid grid-cols-3 gap-4">
+                    {/* originalPrice Input REMOVED - Using main price input as base */}
+                    <FormField control={form.control} name="discountPercentage" render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Descuento (%)</FormLabel>
+                        <FormControl><Input type="number" min="0" max="100" {...field} /></FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )} />
+                    <FormField control={form.control} name="discountEndDate" render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Fecha Fin Descuento</FormLabel>
+                        <FormControl><Input type="date" {...field} /></FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )} />
+                  </div>
+                  <p className="text-xs text-muted-foreground">Si el Precio Original es mayor a 0, el producto se mostrará con descuento.</p>
+                </div>
+              )}
 
               {/* Plataforma, Género y Desarrollador */}
               <div className="grid grid-cols-2 gap-4">
@@ -240,6 +316,13 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
           </Form>
         </CardContent>
       </Card>
-    </div>
+
+      {/* KEY MANAGER SECTION (Only for Digital Products and Existing Products) */}
+      {
+        id !== 'new' && form.watch('type') === 'Digital' && (
+          <KeyManager productId={id} productName={form.getValues('name')} />
+        )
+      }
+    </div >
   );
 }

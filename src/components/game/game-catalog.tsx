@@ -19,6 +19,8 @@ export function GameCatalog({ initialGames }: GameCatalogProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const initialSearch = searchParams.get('search') || '';
+  const initialPlatform = searchParams.get('platform');
+  const initialGenre = searchParams.get('genre');
 
   // Data State
   const [games, setGames] = useState<Game[]>(initialGames || []);
@@ -28,15 +30,19 @@ export function GameCatalog({ initialGames }: GameCatalogProps) {
 
   // Filter State
   const [searchQuery, setSearchQuery] = useState(initialSearch);
-  const [selectedPlatforms, setSelectedPlatforms] = useState<string[]>([]);
-  const [selectedGenres, setSelectedGenres] = useState<string[]>([]);
-  const [priceRange, setPriceRange] = useState<[number, number]>([0, 2000]);
+  const [selectedPlatforms, setSelectedPlatforms] = useState<string[]>(
+    initialPlatform ? initialPlatform.split(',').filter(Boolean) : []
+  );
+  const [selectedGenres, setSelectedGenres] = useState<string[]>(
+    initialGenre ? initialGenre.split(',').filter(Boolean) : []
+  );
+  const [priceRange, setPriceRange] = useState<[number, number]>([0, 10000000]);
 
   // Dynamic Options
   const [platforms, setPlatforms] = useState<any[]>([]);
   const [genres, setGenres] = useState<any[]>([]);
 
-  const isFirstRender = useRef(!initialSearch);
+  const isFirstRender = useRef(true);
 
   // Load Filter Options
   useEffect(() => {
@@ -68,15 +74,16 @@ export function GameCatalog({ initialGames }: GameCatalogProps) {
       try {
         // Convert array filters to API format (comma separated or 'all')
         // Ideally backend receives ?platform=id1,id2
-        const platformParam = selectedPlatforms.length > 0 ? selectedPlatforms.join(',') : 'all';
-        const genreParam = selectedGenres.length > 0 ? selectedGenres.join(',') : 'all';
+        const platformParam = selectedPlatforms.length > 0 ? selectedPlatforms.join(',') : undefined;
+        const genreParam = selectedGenres.length > 0 ? selectedGenres.join(',') : undefined;
 
         const response = await ApiClient.getProducts({
           page,
           limit: 12, // Increased limit for grid
           search: searchQuery,
           platform: platformParam,
-          genre: genreParam
+          genre: genreParam,
+          sort: '-createdAt'
         });
 
         if (Array.isArray(response)) {
@@ -103,6 +110,23 @@ export function GameCatalog({ initialGames }: GameCatalogProps) {
     return () => clearTimeout(timeoutId);
   }, [searchQuery, page, selectedPlatforms, selectedGenres]); // Price filtered on client for smooth slider
 
+  // Sync State to URL
+  useEffect(() => {
+    // Skip the very first render to avoid redundant push if server already handled it
+    if (isFirstRender.current) return;
+
+    const params = new URLSearchParams();
+    if (searchQuery) params.set('search', searchQuery);
+    if (selectedPlatforms.length > 0) params.set('platform', selectedPlatforms.join(','));
+    if (selectedGenres.length > 0) params.set('genre', selectedGenres.join(','));
+
+    const query = params.toString();
+    const newPath = query ? `/productos?${query}` : '/productos';
+
+    // We use push with { scroll: false } to maintain position
+    router.push(newPath, { scroll: false });
+  }, [searchQuery, selectedPlatforms, selectedGenres, router]);
+
   // Reset Page on filter change
   useEffect(() => {
     setPage(1);
@@ -112,9 +136,9 @@ export function GameCatalog({ initialGames }: GameCatalogProps) {
     setSearchQuery('');
     setSelectedPlatforms([]);
     setSelectedGenres([]);
-    setPriceRange([0, 2000]);
+    setPriceRange([0, 10000000]);
     setPage(1);
-    router.push('/productos');
+    // router.push already handled by the sync useEffect
   };
 
   return (

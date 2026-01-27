@@ -24,7 +24,7 @@ export default function AdminProductsPage() {
   const loadProducts = async (page = 1) => {
     try {
       setLoading(true);
-      const response = await ApiClient.getProducts({ page, limit: 10 });
+      const response = await ApiClient.getProducts({ page, limit: 10, sort: '-createdAt' });
       // Response is strictly typed as PaginatedResponse now. No guessing using Array.isArray needed.
       setProducts(response.products);
       setMeta(response.meta);

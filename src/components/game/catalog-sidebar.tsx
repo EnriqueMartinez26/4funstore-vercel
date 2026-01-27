@@ -82,8 +82,8 @@ export function CatalogSidebar({
                                 defaultValue={[0, 1000]}
                                 value={priceRange}
                                 min={0}
-                                max={2000} // Asumimos un max razonable, podría ser dinámico
-                                step={10} // Pasos de 10
+                                max={10000000} // Aumentado para soportar precios altos
+                                step={1000} // Pasos de 1000
                                 onValueChange={(val) => setPriceRange(val as [number, number])}
                             />
                             <div className="flex items-center justify-between text-sm">

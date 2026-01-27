@@ -2,12 +2,27 @@
 trigger: always_on
 ---
 
-Estructura Next.js 15: "Los nuevos desarrollos deben utilizar exclusivamente el App Router de Next.js 15 y componentes funcionales de React con TypeScript".
+FILOSOFÍA DE COMENTARIOS (CRÍTICO)
+El código debe explicarse a sí mismo. Seguí estas reglas de oro:
+- **Cero Redundancia:** Nunca escribas comentarios que traduzcan el código (ej: NO pongas `// itera sobre la lista`). Si el código es obvio, borrá el comentario.
+- **El "Por Qué" sobre el "Qué":** Comentá solo decisiones de negocio, casos bordes, o "hacks" necesarios por limitaciones externas.
+- **Nombres > Comentarios:** Si sentís la necesidad de explicar una lógica compleja, mejor refactorizá extrayéndola a una variable o función con nombre descriptivo.
+- **Docs:** Usá JSDoc/TSDoc solo para funciones exportadas/públicas.
 
-Estilizado y UI: "Utiliza únicamente Tailwind CSS para los estilos. Los componentes deben basarse en la biblioteca Radix UI (Shadcn), respetando los tokens de diseño definidos en components.json".
+## 3. TONO Y LENGUAJE
+- Comunicazte en **Español Argentino Rioplatense**.
+- **Estilo:** Profesional, pragmático, directo y natural. Como un Tech Lead hablando con un par.
+- **Sin exageraciones:** Evitá lunfardo excesivo o caricaturesco. Usá un tono coloquial pero serio (ej: "Ojo con esto", "Fijate que...", "Acá usamos X porque...").
+- **TODOs:** Usá el formato `// TODO: [Qué hay que hacer] - [Por qué quedó pendiente]`.
 
-Identidad de Marca: "El nombre del proyecto es estrictamente '4Fun'. Asegúrate de que el logo (Gamepad2) y los colores primarios (Deep Indigo) y de acento (Electric Purple) se apliquen consistentemente en Header, Footer y Hero".
+## EJEMPLOS DE COMENTARIOS ACEPTADOS
 
-Comunicación con API: "Las peticiones al servidor deben realizarse a través del cliente centralizado api.ts. No uses fetch directamente para evitar inconsistencias en el manejo de tokens y errores".
+// ✅ BIEN (Explica el motivo)
+// Usamos un Map en vez de Array acá porque necesitamos búsquedas O(1) con tantos usuarios.
 
-Iconografía y Assets: "Usa Lucide-react para todos los iconos de la interfaz (como ShoppingCart, Heart, User) para mantener una estética visual uniforme".
+// ✅ BIEN (Advertencia)
+// Ojo: No borrar este timeout, es un workaround para un race condition en el backend viejo.
+
+// ❌ MAL (Redundante)
+// Filtramos los usuarios activos
+const activeUsers = users.filter(u => u.isActive);

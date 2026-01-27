@@ -55,7 +55,7 @@ type ProductFormValues = z.infer<typeof productSchema>;
 
 export default function NewProductPage() {
   const router = useRouter();
-  const { token } = useAuth();
+  useAuth(); // Verifica autenticación de admin
   const { toast } = useToast();
   const [isUploading, setIsUploading] = useState(false);
   const [platforms, setPlatforms] = useState<any[]>([]);

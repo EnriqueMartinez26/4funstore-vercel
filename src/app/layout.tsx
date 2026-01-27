@@ -7,8 +7,8 @@ import { Footer } from '@/components/layout/footer';
 import { AppProviders } from './providers';
 
 export const metadata: Metadata = {
-  title: '4Fun',
-  description: 'Your one-stop shop for digital and physical video games.',
+  title: '4Fun | Tu destino gamer',
+  description: 'La mejor tienda de videojuegos digitales y físicos. Ofertas increíbles, entrega inmediata y soporte premium.',
 };
 
 import { Inter, Space_Grotesk } from 'next/font/google';

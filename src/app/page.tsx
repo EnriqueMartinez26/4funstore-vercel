@@ -8,7 +8,7 @@ import { ApiClient } from '@/lib/api';
 const defaultImage = "https://images.unsplash.com/photo-1550745165-9bc0b252726f?q=80&w=600";
 
 export default async function Home() {
-  // 1. Fetch data from Backend
+  // 1. Fetch data del Backend
   let platformsData: any[] = [];
   let genresData: any[] = [];
 
@@ -18,14 +18,14 @@ export default async function Home() {
       ApiClient.getGenres().catch(() => [])
     ]);
 
-    // Handle potential response structures (array or object with data property)
+    // Manejamos estructura de respuesta (Array vs Objeto)
     platformsData = Array.isArray(pData) ? pData : (pData?.data || []);
     genresData = Array.isArray(gData) ? gData : (gData?.data || []);
   } catch (error) {
     console.error("Error fetching home visuals:", error);
   }
 
-  // 2. Map Backend Data to UI Format
+  // 2. Mapeo data Backend -> UI
   const platforms = platformsData.map((p: any) => ({
     id: p.id,
     name: p.name,
@@ -40,7 +40,6 @@ export default async function Home() {
 
   return (
     <div className="flex flex-col gap-12 md:gap-16">
-      {/* Reemplazamos el Hero antiguo con el nuevo PixelHero basado en la imagen sugerida */}
       <PixelHero />
 
       <div className="container mx-auto px-4 space-y-12 md:space-y-16">

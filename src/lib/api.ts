@@ -7,7 +7,7 @@ const getBaseUrl = () => {
   if (typeof window === 'undefined') {
     return process.env.NEXT_PUBLIC_API_URL || 'http://localhost:9003';
   }
-  // Client side: use relative path to leverage Next.js rewrites (proxies to backend)
+  // Client-side: Path relativo para aprovechar los rewrites de Next.js (proxy al backend)
   return '';
 };
 
@@ -24,17 +24,25 @@ export class ApiClient {
     const apiPath = baseUrl.endsWith('/api') ? '' : '/api';
     const url = `${baseUrl}${apiPath}${endpoint}`;
 
+    // Fallback: Token en localStorage cuando el proxy de Next.js no propaga cookies HttpOnly
+    const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+      ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
+      ...options.headers as any
+    };
+
     const response = await fetch(url, {
-      cache: 'no-store', // Default, can be overridden by options
+      cache: 'no-store',
       ...options,
-      credentials: 'include',
-      headers: { 'Content-Type': 'application/json', ...options.headers },
+      credentials: 'include', // Equivalente a withCredentials: true en Axios. CRUCIAL para envíar cookies.
+      headers,
     });
 
     const data = await response.json();
 
     if (!response.ok) {
-      // Intentar extraer el mensaje de error de varios formatos comunes
+      // Normalizamos el mensaje de error (viene en mil formatos distintos)
       const errorMessage = data.message || data.error || (Array.isArray(data.errors) ? data.errors.map((e: any) => e.msg || e.message).join(', ') : JSON.stringify(data.errors)) || `Error API: ${response.statusText}`;
 
       if (response.status === 401) {
@@ -47,7 +55,7 @@ export class ApiClient {
     return data;
   }
 
-  // Auth
+
   static async login(data: { email: string; password: string }) { return this.request('/auth/login', { method: 'POST', body: JSON.stringify(data) }); }
   static async register(data: { name: string; email: string; password: string }) { return this.request('/auth/register', { method: 'POST', body: JSON.stringify(data) }); }
 
@@ -64,7 +72,7 @@ export class ApiClient {
   }
   static async logout() { return this.request('/auth/logout', { method: 'POST' }); }
 
-  // Cloudinary Upload (Centralized)
+
   static async uploadImage(file: File): Promise<string> {
     const formData = new FormData();
     formData.append("file", file);
@@ -85,18 +93,19 @@ export class ApiClient {
     return data.secure_url;
   }
 
-  // Contacto
+
   static async sendContactMessage(data: { firstName: string, lastName: string, email: string, message: string }) {
     return this.request('/contact', { method: 'POST', body: JSON.stringify(data) });
   }
 
-  // Productos
+
   static async getProducts(params?: {
     page?: number;
     limit?: number;
     search?: string;
     platform?: string;
     genre?: string;
+    sort?: string;
   }, options?: RequestInit): Promise<PaginatedResponse<Product>> {
     const query = new URLSearchParams();
     if (params?.page) query.append("page", params.page.toString());
@@ -104,14 +113,14 @@ export class ApiClient {
     if (params?.search) query.append("search", params.search);
     if (params?.platform && params.platform !== 'all') query.append("platform", params.platform);
     if (params?.genre && params.genre !== 'all') query.append("genre", params.genre);
+    if (params?.sort) query.append("sort", params.sort);
 
     const queryString = query.toString() ? `?${query.toString()}` : "";
     const response = await this.request(`/products${queryString}`, options);
 
-    // Default empty state
     const emptyMeta = { total: 0, page: 1, limit: 10, totalPages: 1 };
 
-    // Check if response is array (direct list) or object (paginated)
+    // Chequeamos si es array plano o paginado
     let rawProducts = [];
     let meta = emptyMeta;
 
@@ -119,7 +128,7 @@ export class ApiClient {
       rawProducts = response;
     } else if (response.data && Array.isArray(response.data)) {
       rawProducts = response.data;
-      // Map backend specific pagination keys to our Meta interface
+      // Mapeamos keys del backend a nuestra interface Meta
       meta = {
         total: response.pagination?.total || response.meta?.total || 0,
         page: response.pagination?.page || response.meta?.page || 1,
@@ -127,7 +136,7 @@ export class ApiClient {
         totalPages: response.pagination?.pages || response.meta?.totalPages || 1
       };
     } else if (response.products && Array.isArray(response.products)) {
-      // Handle case where backend might conform to our interface already
+      // Caso donde el backend ya machea nuestra interface
       rawProducts = response.products;
       meta = response.meta || emptyMeta;
     }
@@ -155,12 +164,12 @@ export class ApiClient {
       name: productData.name,
       description: productData.description,
       price: parseFloat(productData.price),
-      platform: productData.platformId, // Changed to 'platform' to match read schema guess, or keep as ID?
-      genre: productData.genreId,       // Changed to 'genre'
-      type: productData.type,           // "Digital" or "Physical"
+      platform: productData.platformId,
+      genre: productData.genreId,
+      type: productData.type,
       releaseDate: new Date(),
       developer: productData.developer,
-      imageId: productData.imageUrl,    // Changed to imageId
+      imageId: productData.imageUrl,
       trailerUrl: productData.trailerUrl, // Nuevo campo
       stock: parseInt(productData.stock),
       active: true
@@ -169,7 +178,7 @@ export class ApiClient {
   }
 
   static async updateProduct(id: string, productData: any) {
-    // Shotgun approach: enviar múltiples formatos para asegurar que el backend lo tome
+    // Shotgun approach: Mandamos todo formateado por si las dudas
     const backendPayload = {
       name: productData.name,
       description: productData.description,
@@ -177,7 +186,7 @@ export class ApiClient {
       stock: parseInt(String(productData.stock), 10), // Forzar entero
       imageId: productData.imageUrl,
       trailerUrl: productData.trailerUrl, // Nuevo campo
-      // Enviar ambos formatos de ID por seguridad
+      // IDs duplicados para asegurar compatibilidad
       platform: productData.platformId,
       platformId: productData.platformId,
       genre: productData.genreId,
@@ -200,7 +209,7 @@ export class ApiClient {
     });
   }
 
-  // Categories
+
   static async getCategories() {
     const res = await this.request('/categories');
     return res.data || res;
@@ -223,7 +232,7 @@ export class ApiClient {
     });
   }
 
-  // Gestión de Visuales (Plataformas y Géneros)
+
   static async getPlatforms() {
     const res = await this.request('/platforms');
     return res.data || res;
@@ -268,7 +277,7 @@ export class ApiClient {
     });
   }
 
-  // Carrito
+
   static async getCart(userId?: string) {
     if (!userId) return { cart: { items: [] } };
     const data = await this.request(`/cart/${userId}`);
@@ -279,7 +288,7 @@ export class ApiClient {
           try {
             parsedProduct = ProductSchema.parse(item.product);
           } catch (e) {
-            Logger.error(`[ApiClient] Failed to parse product for cart item ${item._id}:`, e);
+            Logger.error(`[ApiClient] Explotó el parseo del producto en cart item ${item._id}:`, e);
           }
         }
         return {
@@ -309,7 +318,7 @@ export class ApiClient {
     return this.request(`/cart/${userId}`, { method: 'DELETE' });
   }
 
-  // Wishlist
+
   static async getWishlist(userId: string) {
     const response = await this.request(`/wishlist/${userId}`);
     if (Array.isArray(response.wishlist)) {
@@ -324,13 +333,30 @@ export class ApiClient {
     return this.request('/wishlist/toggle', { method: 'POST', body: JSON.stringify({ userId, productId }) });
   }
 
-  // ÓRDENES
+
   static async createOrder(orderData: any) {
     return this.request('/orders', { method: 'POST', body: JSON.stringify(orderData) });
   }
 
-  // Método público para obtener órdenes de usuario
+
   static async getUserOrders(userId: string) {
-    return this.request(`/orders/myorders/${userId}`);
+    return this.request(`/orders/user/${userId}`);
+  }
+
+
+  // --- KEY MANAGEMENT (ADMIN) ---
+  static async addKeys(productId: string, keys: string[]) {
+    return this.request('/keys/bulk', {
+      method: 'POST',
+      body: JSON.stringify({ productId, keys })
+    });
+  }
+
+  static async deleteKey(keyId: string) {
+    return this.request(`/keys/${keyId}`, { method: 'DELETE' });
+  }
+
+  static async getKeysByProduct(productId: string) {
+    return this.request(`/keys/product/${productId}`);
   }
 }

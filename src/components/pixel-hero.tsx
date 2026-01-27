@@ -28,7 +28,7 @@ export const PixelHero = ({
 }: FeaturedGameProps) => {
   const { addToCart } = useCart();
 
-  // Mock Game Object para compatibilidad con el carrito
+  // Mock Game Object para que funque el carrito
   const gameObj: Game = {
     id: 'featured-1',
     name: title,
@@ -46,7 +46,7 @@ export const PixelHero = ({
 
   return (
     <section className="relative w-full overflow-hidden bg-background py-12 md:py-24 lg:py-32">
-      {/* Fondo decorativo "Pixel/Grid" */}
+      {/* Fondo "Pixel/Grid" */}
       <div className="absolute inset-0 z-0 opacity-[0.03]"
         style={{
           backgroundImage: 'linear-gradient(to right, currentColor 1px, transparent 1px), linear-gradient(to bottom, currentColor 1px, transparent 1px)',
@@ -58,7 +58,7 @@ export const PixelHero = ({
       <div className="container relative z-10 mx-auto px-4">
         <div className="grid gap-8 lg:grid-cols-2 lg:gap-16 items-center">
 
-          {/* Columna de Texto */}
+          {/* Columna Texto */}
           <div className="space-y-8 animate-in slide-in-from-left duration-700 fade-in">
             <div className="flex flex-wrap gap-2">
               {tags.map((tag) => (
@@ -100,7 +100,7 @@ export const PixelHero = ({
             </div>
           </div>
 
-          {/* Columna de Imagen (Estilo Tarjeta Flotante) */}
+          {/* Columna Imagen (Card Flotante) */}
           <div className="relative group perspective-1000 animate-in slide-in-from-right duration-700 fade-in delay-200">
             {/* Elemento decorativo detrás */}
             <div className="absolute -inset-2 bg-gradient-to-r from-primary to-accent rounded-2xl blur-xl opacity-20 group-hover:opacity-40 transition duration-1000 group-hover:duration-200" />
@@ -116,7 +116,7 @@ export const PixelHero = ({
                   sizes="(max-width: 768px) 100vw, 50vw"
                 />
 
-                {/* Overlay de estilo "Glitch" o tech */}
+                {/* Overlay tipo "Glitch" / Tech */}
                 <div className="absolute inset-0 bg-gradient-to-t from-background/90 via-transparent to-transparent opacity-60 md:opacity-0 md:group-hover:opacity-100 transition-opacity duration-300 flex items-end p-6">
                   <div className="flex items-center gap-2 text-foreground font-mono bg-background/80 backdrop-blur-sm px-3 py-1 rounded-full border border-border/50">
                     <Zap className="h-4 w-4 text-yellow-500 fill-yellow-500" />

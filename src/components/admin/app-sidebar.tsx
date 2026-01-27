@@ -78,10 +78,10 @@ export function AppSidebar() {
                         <SidebarMenu>
                             {items.map((item) => (
                                 <SidebarMenuItem key={item.title}>
-                                    <SidebarMenuButton asChild isActive={pathname === item.url || pathname.startsWith(item.url + '/')}>
-                                        <Link href={item.url}>
-                                            <item.icon />
-                                            <span>{item.title}</span>
+                                    <SidebarMenuButton asChild isActive={pathname === item.url || pathname.startsWith(item.url + '/')} className="h-10 lg:h-12">
+                                        <Link href={item.url} className="flex items-center gap-3">
+                                            <item.icon className="!h-5 !w-5 lg:!h-6 lg:!w-6" />
+                                            <span className="text-base lg:text-lg">{item.title}</span>
                                         </Link>
                                     </SidebarMenuButton>
                                 </SidebarMenuItem>
@@ -96,9 +96,9 @@ export function AppSidebar() {
                         <SidebarMenu>
                             <SidebarMenuItem>
                                 <SidebarMenuButton asChild>
-                                    <Link href="/">
-                                        <Home />
-                                        <span>Volver a la Tienda</span>
+                                    <Link href="/" className="flex items-center gap-3">
+                                        <Home className="!h-5 !w-5 lg:!h-6 lg:!w-6" />
+                                        <span className="text-base lg:text-lg">Volver a la Tienda</span>
                                     </Link>
                                 </SidebarMenuButton>
                             </SidebarMenuItem>

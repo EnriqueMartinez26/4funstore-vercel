@@ -2,11 +2,11 @@
 
 import { useContext, createContext, useState, useEffect, ReactNode } from 'react';
 import { ApiClient } from '@/lib/api';
+import { Logger } from '@/lib/logger';
 import type { User } from '@/lib/types';
 
 interface AuthContextType {
   user: User | null;
-  token: string | null; // Mantenemos por compatibilidad, pero será null o dummy
   loading: boolean;
   login: (email: string, password: string) => Promise<{ success: boolean; message?: string }>;
   register: (name: string, email: string, password: string) => Promise<{ success: boolean; message?: string }>;
@@ -19,13 +19,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // Verificar sesión al cargar (cookie HttpOnly)
+  // Verificar sesión al cargar (cookie HttpOnly) y cargar token desde localStorage
   useEffect(() => {
+    // No need to cargar token desde localStorage; la sesión se maneja con cookie HttpOnly
+    // Si el backend envía una cookie, el navegador la enviará automáticamente
+
     const checkSession = async () => {
       try {
+        Logger.debug("[Auth] Verificando sesión con Backend...");
         const response = await ApiClient.getProfile();
-        if (response.success && response.user) {
-          setUser(response.user);
+        // El backend devuelve { success: true, data: user }
+        if (response.success && (response.data || response.user)) {
+          setUser(response.data || response.user);
         }
       } catch (error) {
         // Si falla, es que no hay cookie válida o expiró
@@ -41,9 +46,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const login = async (email: string, password: string) => {
     try {
       const response = await ApiClient.login({ email, password });
+      Logger.debug('[Auth] Login response:', response);
       if (response.success) {
         setUser(response.user);
+        // Guardar token en localStorage como fallback (el proxy de Next.js no propaga cookies)
+        if (response.token) {
+          localStorage.setItem('token', response.token);
+        }
         return { success: true };
+
+
       }
       return { success: false, message: 'Credenciales inválidas' };
     } catch (error: any) {
@@ -56,6 +68,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const response = await ApiClient.register({ name, email, password });
       if (response.success) {
         setUser(response.user);
+        // Guardar token en localStorage como fallback
+        if (response.token) {
+          localStorage.setItem('token', response.token);
+        }
         return { success: true };
       }
       return { success: false, message: 'Error en registro' };
@@ -71,8 +87,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       console.error(error);
     } finally {
       setUser(null);
-      // Opcional: Limpiar datos locales no sensibles como carrito
+      // Limpiar token y datos locales
       if (typeof window !== 'undefined') {
+        localStorage.removeItem('token');
         localStorage.removeItem('cart');
       }
       // Redirigir o refrescar para limpiar estado completo
@@ -81,7 +98,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, token: null, loading, login, register, logout }}>
+    <AuthContext.Provider value={{ user, loading, login, register, logout }}>
       {children}
     </AuthContext.Provider>
   );

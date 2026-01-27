@@ -47,6 +47,18 @@ export const ProductSchema = z.preprocess((val: any) => {
   releaseDate: z.string().or(z.date()).optional(),
   active: z.boolean().optional(),
   trailerUrl: z.string().optional(),
+  specPreset: z.enum(['Low', 'Mid', 'High']).optional().or(z.string().optional()),
+  requirements: z.object({
+    os: z.string(),
+    processor: z.string(),
+    memory: z.string(),
+    graphics: z.string(),
+    storage: z.string()
+  }).optional(),
+  // Discount Fields
+  originalPrice: z.coerce.number().nullable().optional(),
+  discountPercentage: z.coerce.number().default(0),
+  discountEndDate: z.string().nullable().optional()
 })).transform((data: any) => {
 
   // Lógica de resolución de Plataforma
@@ -103,7 +115,13 @@ export const ProductSchema = z.preprocess((val: any) => {
     rating: data.rating,
     releaseDate: data.releaseDate ? new Date(data.releaseDate).toISOString() : new Date().toISOString(),
     active: data.active,
-    trailerUrl: data.trailerUrl
+    trailerUrl: data.trailerUrl,
+    specPreset: data.specPreset,
+    requirements: data.requirements,
+    // Discount
+    originalPrice: data.originalPrice,
+    discountPercentage: data.discountPercentage || 0,
+    discountEndDate: data.discountEndDate
   };
 });
 

@@ -90,9 +90,10 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         await ApiClient.addToCart(user.id, product.id, quantity);
         await fetchCart(); // Solo resincronizar carrito para obtener IDs reales
         toast({ title: "Agregado al carrito", description: `${product.name} añadido.` });
-      } catch (e) {
+      } catch (e: any) {
         setCart(prev => prev.filter(i => i.id !== newItem.id)); // Rollback
-        toast({ variant: "destructive", title: "Error", description: "No se pudo agregar al carrito." });
+        const errorMessage = e?.message || "No se pudo agregar al carrito.";
+        toast({ variant: "destructive", title: "Error", description: errorMessage });
       }
     } else {
       // Local

@@ -27,13 +27,17 @@ export type Game = {
   active?: boolean;
   trailerUrl?: string; // URL del video/trailer
   specPreset?: 'Low' | 'Mid' | 'High'; // Preset de requisitos de PC
-  requisitos?: {
+  requirements?: {
     os: string;
     processor: string;
     memory: string;
     graphics: string;
     storage: string;
   };
+  // Discount Fields
+  originalPrice?: number | null;
+  discountPercentage?: number;
+  discountEndDate?: string | null;
 };
 
 // Unificamos User (eliminamos duplicidad de 'Usuario')

@@ -1,9 +1,22 @@
 import { GameCatalog } from '@/components/game/game-catalog';
 import { ApiClient } from '@/lib/api';
 
-export default async function ProductosPage() {
+export default async function ProductosPage({
+  searchParams
+}: {
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>
+}) {
+  const { genre, platform, search } = await searchParams;
+
   // Nota: Esto se ejecuta en el servidor al cargar la página por primera vez. Cacheamos por 60s.
-  const response = await ApiClient.getProducts({ page: 1, limit: 8 }, { next: { revalidate: 60 } });
+  const response = await ApiClient.getProducts({
+    page: 1,
+    limit: 12,
+    sort: '-createdAt',
+    genre: genre as string,
+    platform: platform as string,
+    search: search as string
+  }, { next: { revalidate: 60 } });
 
   // Extraemos el array, ya sea que venga directo o dentro de un objeto
   const games = (Array.isArray(response) ? response : response.products) as any as import('@/lib/types').Game[];

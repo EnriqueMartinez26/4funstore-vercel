@@ -22,7 +22,7 @@ export function GameCard({ game }: GameCardProps) {
   const isWishlisted = isInWishlist(game.id);
   const hasStock = game.stock !== undefined && game.stock > 0;
 
-  // Manejo de URL de imagen robusto
+  // Fallback robusto para la imagen
   const imageUrl = (game.imageId && (game.imageId.startsWith('http') || game.imageId.startsWith('/')))
     ? game.imageId
     : "https://placehold.co/600x400/png?text=4Fun";
@@ -36,7 +36,7 @@ export function GameCard({ game }: GameCardProps) {
           className="group relative flex h-full flex-col overflow-hidden rounded-lg border-0 bg-transparent shadow-none transition-all duration-300 hover:bg-transparent"
           aria-labelledby={`game-title-${game.id}`}
         >
-          {/* --- SECCIÓN DE IMAGEN (Cover Art) --- */}
+          {/* --- COVER ART --- */}
           <div className="relative aspect-[3/4] w-full overflow-hidden rounded-lg bg-muted mb-3 shadow-md group-hover:shadow-xl transition-all duration-300">
             <Image
               src={imageUrl}
@@ -98,15 +98,20 @@ export function GameCard({ game }: GameCardProps) {
               </div>
             </div>
 
-            {/* Stock Badge (Top Left) */}
+            {/* Badges Overlay (Top Left) */}
             <div className="absolute top-2 left-2 flex flex-col gap-1">
               {!hasStock && (
                 <Badge variant="destructive" className="bg-red-500/90 shadow-sm text-[10px]">Agotado</Badge>
               )}
+              {game.discountPercentage && game.discountPercentage > 0 && (
+                <Badge className="bg-green-500/90 shadow-sm text-[10px] animate-pulse">
+                  -{game.discountPercentage}%
+                </Badge>
+              )}
             </div>
           </div>
 
-          {/* --- SECCIÓN DE INFO --- */}
+          {/* --- DATA --- */}
           <div className="flex justify-between items-start gap-2">
             <div className="flex flex-col gap-0.5">
               <h3
@@ -119,7 +124,15 @@ export function GameCard({ game }: GameCardProps) {
             </div>
 
             <div className="flex flex-col items-end">
-              <span className="font-bold text-base md:text-lg text-foreground bg-transparent">
+              {game.originalPrice && game.originalPrice > game.price && (
+                <span className="text-xs text-muted-foreground line-through decoration-red-500/50">
+                  {formatCurrency(game.originalPrice)}
+                </span>
+              )}
+              <span className={cn(
+                "font-bold text-base md:text-lg bg-transparent",
+                game.discountPercentage && game.discountPercentage > 0 ? "text-green-400" : "text-foreground"
+              )}>
                 {formatCurrency(game.price)}
               </span>
             </div>

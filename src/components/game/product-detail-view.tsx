@@ -103,7 +103,7 @@ export function ProductDetailView({ game }: ProductDetailViewProps) {
                         </div>
 
                         {/* System Requirements (Real from Backend) */}
-                        {game.requisitos ? (
+                        {game.requirements ? (
                             <div className="bg-card/30 rounded-xl p-6 border border-white/5">
                                 <h3 className="text-xl font-bold mb-4 flex items-center gap-2">
                                     <Monitor className="h-5 w-5 text-primary" />
@@ -112,23 +112,23 @@ export function ProductDetailView({ game }: ProductDetailViewProps) {
                                 <div className="space-y-2 text-sm">
                                     <div className="flex justify-between py-2 border-b border-white/5">
                                         <span className="text-muted-foreground font-medium">Sistema Operativo:</span>
-                                        <span className="text-foreground">{game.requisitos.os}</span>
+                                        <span className="text-foreground">{game.requirements.os}</span>
                                     </div>
                                     <div className="flex justify-between py-2 border-b border-white/5">
                                         <span className="text-muted-foreground font-medium">Procesador:</span>
-                                        <span className="text-foreground text-right max-w-[60%]">{game.requisitos.processor}</span>
+                                        <span className="text-foreground text-right max-w-[60%]">{game.requirements.processor}</span>
                                     </div>
                                     <div className="flex justify-between py-2 border-b border-white/5">
                                         <span className="text-muted-foreground font-medium">Memoria RAM:</span>
-                                        <span className="text-foreground">{game.requisitos.memory}</span>
+                                        <span className="text-foreground">{game.requirements.memory}</span>
                                     </div>
                                     <div className="flex justify-between py-2 border-b border-white/5">
                                         <span className="text-muted-foreground font-medium">Tarjeta Gráfica:</span>
-                                        <span className="text-foreground text-right max-w-[60%]">{game.requisitos.graphics}</span>
+                                        <span className="text-foreground text-right max-w-[60%]">{game.requirements.graphics}</span>
                                     </div>
                                     <div className="flex justify-between py-2">
                                         <span className="text-muted-foreground font-medium">Almacenamiento:</span>
-                                        <span className="text-foreground">{game.requisitos.storage}</span>
+                                        <span className="text-foreground">{game.requirements.storage}</span>
                                     </div>
                                 </div>
                                 {game.specPreset && (
@@ -154,8 +154,25 @@ export function ProductDetailView({ game }: ProductDetailViewProps) {
                             {/* Price & Actions */}
                             <div className="space-y-4">
                                 {game.price > 0 ? (
-                                    <div className="text-3xl font-bold text-foreground">
-                                        {formatCurrency(game.price)}
+                                    <div className="flex flex-col">
+                                        {game.originalPrice && game.originalPrice > game.price && (
+                                            <div className="flex items-center gap-2">
+                                                <span className="text-lg text-muted-foreground line-through decoration-red-500/50">
+                                                    {formatCurrency(game.originalPrice)}
+                                                </span>
+                                                {game.discountPercentage && (
+                                                    <Badge className="bg-green-500 text-white animate-pulse">
+                                                        -{game.discountPercentage}%
+                                                    </Badge>
+                                                )}
+                                            </div>
+                                        )}
+                                        <div className={cn(
+                                            "text-3xl font-bold",
+                                            game.discountPercentage && game.discountPercentage > 0 ? "text-green-400" : "text-foreground"
+                                        )}>
+                                            {formatCurrency(game.price)}
+                                        </div>
                                     </div>
                                 ) : (
                                     <div className="text-3xl font-bold text-primary">GRATIS</div>
