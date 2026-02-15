@@ -98,7 +98,7 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
           genreId: p.genre.id,
           type: p.type as "Digital" | "Physical",
           developer: p.developer as any, // Cast to any to avoid error if DB has old value
-          specPreset: (p.specPreset || "Mid") as any, // Default to Mid if not present
+          specPreset: ((p as any).specPreset || "Mid") as any,
           imageUrl: p.imageId,
           trailerUrl: p.trailerUrl || "",
           // Discount Fields
