@@ -170,29 +170,31 @@ export class ApiClient {
       releaseDate: new Date(),
       developer: productData.developer,
       imageId: productData.imageUrl,
-      trailerUrl: productData.trailerUrl, // Nuevo campo
+      trailerUrl: productData.trailerUrl,
       stock: parseInt(productData.stock),
-      active: true
+      active: true,
+      specPreset: productData.specPreset,
+      discountPercentage: Number(productData.discountPercentage) || 0,
+      discountEndDate: productData.discountEndDate || null,
     };
     return this.request('/products', { method: 'POST', body: JSON.stringify(backendPayload) });
   }
 
   static async updateProduct(id: string, productData: any) {
-    // Shotgun approach: Mandamos todo formateado por si las dudas
     const backendPayload = {
       name: productData.name,
       description: productData.description,
       price: Number(productData.price),
-      stock: parseInt(String(productData.stock), 10), // Forzar entero
+      stock: parseInt(String(productData.stock), 10),
       imageId: productData.imageUrl,
-      trailerUrl: productData.trailerUrl, // Nuevo campo
-      // IDs duplicados para asegurar compatibilidad
+      trailerUrl: productData.trailerUrl,
       platform: productData.platformId,
-      platformId: productData.platformId,
       genre: productData.genreId,
-      genreId: productData.genreId,
       developer: productData.developer,
-      type: productData.type
+      type: productData.type,
+      specPreset: productData.specPreset,
+      discountPercentage: Number(productData.discountPercentage) || 0,
+      discountEndDate: productData.discountEndDate || null,
     };
     return this.request(`/products/${id}`, { method: 'PUT', body: JSON.stringify(backendPayload) });
   }
