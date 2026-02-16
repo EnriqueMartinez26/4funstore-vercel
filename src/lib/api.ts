@@ -201,8 +201,8 @@ export class ApiClient {
     return this.request(`/products/${id}`, { method: 'PUT', body: JSON.stringify(backendPayload) });
   }
 
-  static async reorderProduct(id: string, direction: 'up' | 'down') {
-    return this.request(`/products/${id}/reorder`, { method: 'PUT', body: JSON.stringify({ direction }) });
+  static async reorderProduct(id: string, newPosition: number) {
+    return this.request(`/products/${id}/reorder`, { method: 'PUT', body: JSON.stringify({ newPosition }) });
   }
 
   static async deleteProduct(id: string) {

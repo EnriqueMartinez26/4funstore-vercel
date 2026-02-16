@@ -11,7 +11,7 @@ import { TableSkeleton } from "@/components/ui/skeletons";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Plus, Pencil, Trash2, ChevronLeft, ChevronRight, Search, ChevronUp, ChevronDown } from "lucide-react";
+import { Loader2, Plus, Pencil, Trash2, ChevronLeft, ChevronRight, Search } from "lucide-react";
 import { formatCurrency } from "@/lib/utils";
 import type { Product } from "@/lib/schemas"; // Import strict Product type
 import type { Meta } from "@/lib/types"; // Import strict Meta type
@@ -60,9 +60,10 @@ export default function AdminProductsPage() {
     }
   };
 
-  const handleReorder = async (id: string, direction: 'up' | 'down') => {
+  const handleReorder = async (id: string, newPosition: number) => {
     try {
-      await ApiClient.reorderProduct(id, direction);
+      await ApiClient.reorderProduct(id, newPosition);
+      toast({ title: "Orden actualizado", description: `Producto movido a la posición ${newPosition}` });
       loadProducts(meta.page, search);
     } catch (error) {
       toast({ variant: "destructive", title: "Error", description: "No se pudo reordenar el producto." });
@@ -117,6 +118,7 @@ export default function AdminProductsPage() {
           <Table>
             <TableHeader>
               <TableRow>
+                <TableHead className="w-[80px]">Orden</TableHead>
                 <TableHead>Imagen</TableHead>
                 <TableHead>Nombre</TableHead>
                 <TableHead>Precio</TableHead>
@@ -126,43 +128,60 @@ export default function AdminProductsPage() {
             </TableHeader>
             <TableBody>
               {products.length > 0 ? (
-                products.map((product) => (
-                  <TableRow key={product.id}>
-                    <TableCell>
-                      <div className="relative h-12 w-12 rounded overflow-hidden bg-muted">
-                        <Image
-                          src={(product.imageId && (product.imageId.startsWith('http') || product.imageId.startsWith('/'))) ? product.imageId : 'https://placehold.co/600x400/png?text=4Fun'}
-                          alt={product.name}
-                          fill
-                          sizes="48px"
-                          className="object-cover"
+                products.map((product, index) => {
+                  const globalIndex = ((meta.page - 1) * (meta.limit || 10)) + index + 1;
+                  return (
+                    <TableRow key={product.id}>
+                      <TableCell>
+                        <Input
+                          key={globalIndex}
+                          type="number"
+                          defaultValue={globalIndex}
+                          className="w-16 text-center h-8"
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                              const val = parseInt(e.currentTarget.value);
+                              if (!isNaN(val) && val > 0 && val !== globalIndex) {
+                                handleReorder(product.id, val);
+                              }
+                            }
+                          }}
+                          onBlur={(e) => {
+                            const val = parseInt(e.target.value);
+                            if (!isNaN(val) && val > 0 && val !== globalIndex) {
+                              handleReorder(product.id, val);
+                            }
+                          }}
                         />
-                      </div>
-                    </TableCell>
-                    <TableCell className="font-medium">{product.name}</TableCell>
-                    <TableCell>{formatCurrency(product.price)}</TableCell>
-                    <TableCell>{product.stock}</TableCell>
-                    <TableCell className="flex gap-1">
-                      <div className="flex flex-col mr-2">
-                        <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => handleReorder(product.id, 'up')}>
-                          <ChevronUp className="h-4 w-4" />
+                      </TableCell>
+                      <TableCell>
+                        <div className="relative h-12 w-12 rounded overflow-hidden bg-muted">
+                          <Image
+                            src={(product.imageId && (product.imageId.startsWith('http') || product.imageId.startsWith('/'))) ? product.imageId : 'https://placehold.co/600x400/png?text=4Fun'}
+                            alt={product.name}
+                            fill
+                            sizes="48px"
+                            className="object-cover"
+                          />
+                        </div>
+                      </TableCell>
+                      <TableCell className="font-medium">{product.name}</TableCell>
+                      <TableCell>{formatCurrency(product.price)}</TableCell>
+                      <TableCell>{product.stock}</TableCell>
+                      <TableCell className="flex gap-2">
+                        <Button variant="outline" size="icon" asChild>
+                          <Link href={`/admin/products/${product.id}`}><Pencil className="h-4 w-4" /></Link>
                         </Button>
-                        <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => handleReorder(product.id, 'down')}>
-                          <ChevronDown className="h-4 w-4" />
+                        <Button variant="destructive" size="icon" onClick={() => handleDelete(product.id)}>
+                          <Trash2 className="h-4 w-4" />
                         </Button>
-                      </div>
-                      <Button variant="outline" size="icon" asChild>
-                        <Link href={`/admin/products/${product.id}`}><Pencil className="h-4 w-4" /></Link>
-                      </Button>
-                      <Button variant="destructive" size="icon" onClick={() => handleDelete(product.id)}>
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))
+                      </TableCell>
+                    </TableRow>
+                  );
+                })
               ) : (
                 <TableRow>
-                  <TableCell colSpan={5} className="h-24 text-center">
+                  <TableCell colSpan={6} className="h-24 text-center">
                     {loading ? <Loader2 className="mx-auto h-6 w-6 animate-spin" /> : "No se encontraron productos."}
                   </TableCell>
                 </TableRow>
