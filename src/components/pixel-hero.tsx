@@ -131,7 +131,7 @@ export const PixelHero = () => {
         <div className="flex items-center gap-3 mb-8 md:mb-12">
           <div className="flex items-center gap-2 bg-green-500/10 border border-green-500/20 rounded-full px-4 py-1.5">
             <Zap className="h-4 w-4 text-green-400 fill-green-400" />
-            <span className="text-sm font-bold text-green-400 tracking-wider uppercase font-mono">Ofertas Destacadas</span>
+            <span className="text-sm font-bold text-green-400 tracking-wider uppercase font-mono">Descuentos</span>
           </div>
           {games.length > 1 && (
             <span className="text-xs text-muted-foreground font-mono">{current + 1}/{games.length}</span>
@@ -285,7 +285,7 @@ export const PixelHero = () => {
                   <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-6">
                     <div className="flex items-center gap-2 text-white font-mono bg-black/60 backdrop-blur-sm px-3 py-1 rounded-full border border-white/10">
                       <Zap className="h-4 w-4 text-green-400 fill-green-400" />
-                      <span className="text-xs font-bold tracking-widest">OFERTA DESTACADA</span>
+                      <span className="text-xs font-bold tracking-widest">Descuento</span>
                     </div>
                   </div>
 
