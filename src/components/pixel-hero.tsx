@@ -1,53 +1,120 @@
 "use client";
 
-import React from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
-import { ShoppingCart, Heart, Zap, ArrowRight } from 'lucide-react';
+import { ShoppingCart, Zap, ArrowRight, ChevronLeft, ChevronRight, Percent } from 'lucide-react';
 import { useCart } from '@/context/CartContext';
 import { formatCurrency } from '@/lib/utils';
+import { cn } from '@/lib/utils';
 import type { Game } from '@/lib/types';
+import type { Product } from '@/lib/schemas';
+import { ApiClient } from '@/lib/api';
 import Link from 'next/link';
 
-interface FeaturedGameProps {
-  title?: string;
-  description?: string;
-  price?: number;
-  tags?: string[];
-  imageUrl?: string;
-}
+const DEFAULT_IMAGE = "https://images.unsplash.com/photo-1519608487953-e999c86e7455?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080";
 
-export const PixelHero = ({
-  title = "Cyber Odyssey",
-  description = "Explora una metrópolis distópica en este RPG de mundo abierto. Tus decisiones moldean la historia.",
-  price = 59.99,
-  tags = ["RPG", "Cyberpunk", "Open World"],
-  imageUrl = "https://images.unsplash.com/photo-1519608487953-e999c86e7455?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080"
-}: FeaturedGameProps) => {
+export const PixelHero = () => {
   const { addToCart } = useCart();
+  const [games, setGames] = useState<Product[]>([]);
+  const [current, setCurrent] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const [transitioning, setTransitioning] = useState(false);
 
-  // Mock Game Object para que funque el carrito
+  useEffect(() => {
+    const fetchDiscounted = async () => {
+      try {
+        const res = await ApiClient.getProducts({ discounted: true, limit: 6 });
+        if (res.products.length > 0) {
+          setGames(res.products);
+        }
+      } catch (e) {
+        console.error("Error fetching discounted products:", e);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchDiscounted();
+  }, []);
+
+  const navigate = useCallback((direction: number) => {
+    if (games.length === 0 || transitioning) return;
+    setTransitioning(true);
+    setTimeout(() => {
+      setCurrent(prev => (prev + direction + games.length) % games.length);
+      setTransitioning(false);
+    }, 300);
+  }, [games.length, transitioning]);
+
+  useEffect(() => {
+    if (games.length <= 1) return;
+    const interval = setInterval(() => navigate(1), 6000);
+    return () => clearInterval(interval);
+  }, [games.length, navigate]);
+
+  if (loading) {
+    return (
+      <section className="relative w-full overflow-hidden bg-background py-12 md:py-24 lg:py-32">
+        <div className="container mx-auto px-4 flex justify-center items-center min-h-[300px]">
+          <div className="animate-pulse flex flex-col items-center gap-4">
+            <Percent className="h-12 w-12 text-primary/40 animate-spin" />
+            <p className="text-muted-foreground font-mono">Cargando ofertas...</p>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  if (games.length === 0) {
+    return (
+      <section className="relative w-full overflow-hidden bg-background py-12 md:py-24 lg:py-32">
+        <div className="absolute inset-0 z-0 opacity-[0.03]"
+          style={{
+            backgroundImage: 'linear-gradient(to right, currentColor 1px, transparent 1px), linear-gradient(to bottom, currentColor 1px, transparent 1px)',
+            backgroundSize: '40px 40px'
+          }}
+        />
+        <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-b from-background via-transparent to-background z-0" />
+        <div className="container relative z-10 mx-auto px-4 text-center space-y-4">
+          <h2 className="font-headline text-3xl md:text-4xl font-bold text-primary">Sin ofertas activas</h2>
+          <p className="text-muted-foreground text-lg">Volvé pronto para ver las mejores ofertas.</p>
+          <Button variant="outline" size="lg" asChild>
+            <Link href="/productos">Explorar Catálogo <ArrowRight className="ml-2 h-5 w-5" /></Link>
+          </Button>
+        </div>
+      </section>
+    );
+  }
+
+  const game = games[current];
+  const imageUrl = (game.imageId && (game.imageId.startsWith('http') || game.imageId.startsWith('/')))
+    ? game.imageId : DEFAULT_IMAGE;
+
   const gameObj: Game = {
-    id: 'featured-1',
-    name: title,
-    description: description,
-    price: price,
-    finalPrice: price,
-    platform: { id: 'pc', name: 'PC', imageId: '' },
-    genre: { id: 'rpg', name: 'RPG', imageId: '' },
-    type: 'Digital',
-    releaseDate: '2024-01-01',
-    developer: 'Neon Studios',
-    imageId: 'cyber-odyssey',
-    rating: 5,
-    stock: 100
+    id: game.id,
+    name: game.name,
+    description: game.description,
+    price: game.price,
+    finalPrice: game.finalPrice,
+    platform: game.platform,
+    genre: game.genre,
+    type: game.type as 'Digital' | 'Physical',
+    releaseDate: game.releaseDate,
+    developer: game.developer,
+    imageId: game.imageId,
+    rating: game.rating,
+    stock: game.stock,
+    discountPercentage: game.discountPercentage,
+    discountEndDate: game.discountEndDate,
   };
 
+  const hasDiscount = (game.discountPercentage ?? 0) > 0 && game.finalPrice < game.price;
+
   return (
-    <section className="relative w-full overflow-hidden bg-background py-12 md:py-24 lg:py-32">
-      {/* Fondo "Pixel/Grid" */}
+    <section className="relative w-full overflow-hidden bg-background py-12 md:py-24 lg:py-28">
+      {/* Fondo Grid */}
       <div className="absolute inset-0 z-0 opacity-[0.03]"
         style={{
           backgroundImage: 'linear-gradient(to right, currentColor 1px, transparent 1px), linear-gradient(to bottom, currentColor 1px, transparent 1px)',
@@ -57,25 +124,60 @@ export const PixelHero = ({
       <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-b from-background via-transparent to-background z-0" />
 
       <div className="container relative z-10 mx-auto px-4">
-        <div className="grid gap-8 lg:grid-cols-2 lg:gap-16 items-center">
+        {/* Header de sección */}
+        <div className="flex items-center gap-3 mb-8 md:mb-12">
+          <div className="flex items-center gap-2 bg-green-500/10 border border-green-500/20 rounded-full px-4 py-1.5">
+            <Zap className="h-4 w-4 text-green-400 fill-green-400" />
+            <span className="text-sm font-bold text-green-400 tracking-wider uppercase font-mono">Ofertas Destacadas</span>
+          </div>
+          {games.length > 1 && (
+            <span className="text-xs text-muted-foreground font-mono">{current + 1}/{games.length}</span>
+          )}
+        </div>
+
+        <div className={cn(
+          "grid gap-8 lg:grid-cols-2 lg:gap-16 items-center transition-all duration-300",
+          transitioning ? "opacity-0 translate-y-2" : "opacity-100 translate-y-0"
+        )}>
 
           {/* Columna Texto */}
-          <div className="space-y-8 animate-in slide-in-from-left duration-700 fade-in">
+          <div className="space-y-6">
             <div className="flex flex-wrap gap-2">
-              {tags.map((tag) => (
-                <Badge key={tag} variant="secondary" className="text-primary font-mono uppercase tracking-wider border-primary/20 bg-primary/5">
-                  {tag}
+              {hasDiscount && (
+                <Badge className="bg-green-500 text-white font-mono text-sm px-3 py-1 animate-pulse">
+                  -{game.discountPercentage}% OFF
                 </Badge>
-              ))}
+              )}
+              <Badge variant="secondary" className="text-primary font-mono uppercase tracking-wider border-primary/20 bg-primary/5">
+                {game.platform?.name || 'Digital'}
+              </Badge>
+              <Badge variant="secondary" className="text-primary font-mono uppercase tracking-wider border-primary/20 bg-primary/5">
+                {game.genre?.name || 'Game'}
+              </Badge>
             </div>
 
-            <div className="space-y-4">
-              <h1 className="font-headline text-4xl font-bold tracking-tighter sm:text-5xl md:text-6xl lg:text-7xl text-primary drop-shadow-sm">
-                {title}
+            <div className="space-y-3">
+              <h1 className="font-headline text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl lg:text-6xl text-foreground drop-shadow-sm line-clamp-2">
+                {game.name}
               </h1>
-              <p className="max-w-[600px] text-muted-foreground text-lg md:text-xl font-body leading-relaxed">
-                {description}
+              <p className="max-w-[600px] text-muted-foreground text-base md:text-lg font-body leading-relaxed line-clamp-3">
+                {game.description}
               </p>
+            </div>
+
+            {/* Bloque de precios */}
+            <div className="flex items-end gap-3">
+              {hasDiscount && (
+                <span className="text-xl md:text-2xl text-muted-foreground line-through decoration-red-500/60">
+                  {formatCurrency(game.price)}
+                </span>
+              )}
+              <span className={cn(
+                "text-3xl md:text-4xl font-bold",
+                hasDiscount ? "text-green-400" : "text-primary"
+              )}>
+                {formatCurrency(game.finalPrice)}
+              </span>
             </div>
 
             <div className="flex flex-col sm:flex-row gap-4">
@@ -83,9 +185,10 @@ export const PixelHero = ({
                 size="lg"
                 className="bg-primary hover:bg-primary/90 text-primary-foreground font-headline text-lg h-14 px-8 shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all duration-300"
                 onClick={() => addToCart(gameObj)}
+                disabled={game.stock <= 0}
               >
                 <ShoppingCart className="mr-2 h-5 w-5" />
-                Comprar {formatCurrency(price)}
+                {game.stock > 0 ? `Comprar ${formatCurrency(game.finalPrice)}` : 'Agotado'}
               </Button>
 
               <Button
@@ -94,40 +197,89 @@ export const PixelHero = ({
                 className="h-14 px-8 border-2 border-primary/10 hover:bg-primary/5 hover:border-primary/30 text-foreground transition-all"
                 asChild
               >
-                <Link href="/productos">
-                  Explorar Catálogo <ArrowRight className="ml-2 h-5 w-5" />
+                <Link href={`/productos/${game.id}`}>
+                  Ver Detalle <ArrowRight className="ml-2 h-5 w-5" />
                 </Link>
               </Button>
             </div>
-          </div>
 
-          {/* Columna Imagen (Card Flotante) */}
-          <div className="relative group perspective-1000 animate-in slide-in-from-right duration-700 fade-in delay-200">
-            {/* Elemento decorativo detrás */}
-            <div className="absolute -inset-2 bg-gradient-to-r from-primary to-accent rounded-2xl blur-xl opacity-20 group-hover:opacity-40 transition duration-1000 group-hover:duration-200" />
+            {/* Navegación del Carousel */}
+            {games.length > 1 && (
+              <div className="flex items-center gap-3 pt-2">
+                <button
+                  onClick={() => navigate(-1)}
+                  className="p-2 rounded-full border border-border/50 hover:bg-muted/50 hover:border-primary/30 transition-all"
+                  aria-label="Anterior"
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                </button>
 
-            <Card className="relative overflow-hidden rounded-2xl border border-primary/10 bg-card p-2 shadow-2xl transition-transform duration-500 hover:scale-[1.01]">
-              <div className="relative aspect-video overflow-hidden rounded-xl bg-muted">
-                <Image
-                  src={imageUrl}
-                  alt={title}
-                  fill
-                  className="object-cover transition-transform duration-700 group-hover:scale-105"
-                  priority
-                  sizes="(max-width: 768px) 100vw, 50vw"
-                />
-
-                {/* Overlay tipo "Glitch" / Tech */}
-                <div className="absolute inset-0 bg-gradient-to-t from-background/90 via-transparent to-transparent opacity-60 md:opacity-0 md:group-hover:opacity-100 transition-opacity duration-300 flex items-end p-6">
-                  <div className="flex items-center gap-2 text-foreground font-mono bg-background/80 backdrop-blur-sm px-3 py-1 rounded-full border border-border/50">
-                    <Zap className="h-4 w-4 text-yellow-500 fill-yellow-500" />
-                    <span className="text-xs font-bold tracking-widest">FEATURED ITEM</span>
-                  </div>
+                <div className="flex gap-1.5">
+                  {games.map((_, i) => (
+                    <button
+                      key={i}
+                      onClick={() => {
+                        if (i !== current) {
+                          setTransitioning(true);
+                          setTimeout(() => { setCurrent(i); setTransitioning(false); }, 300);
+                        }
+                      }}
+                      className={cn(
+                        "h-1.5 rounded-full transition-all duration-300",
+                        i === current
+                          ? "w-8 bg-primary"
+                          : "w-1.5 bg-muted-foreground/30 hover:bg-muted-foreground/50"
+                      )}
+                      aria-label={`Ir a oferta ${i + 1}`}
+                    />
+                  ))}
                 </div>
+
+                <button
+                  onClick={() => navigate(1)}
+                  className="p-2 rounded-full border border-border/50 hover:bg-muted/50 hover:border-primary/30 transition-all"
+                  aria-label="Siguiente"
+                >
+                  <ChevronRight className="h-4 w-4" />
+                </button>
               </div>
-            </Card>
+            )}
           </div>
 
+          {/* Columna Imagen */}
+          <div className="relative group animate-in slide-in-from-right duration-700 fade-in delay-200">
+            <div className="absolute -inset-2 bg-gradient-to-r from-green-500/30 to-primary/30 rounded-2xl blur-xl opacity-20 group-hover:opacity-40 transition duration-1000 group-hover:duration-200" />
+
+            <Link href={`/productos/${game.id}`}>
+              <Card className="relative overflow-hidden rounded-2xl border border-primary/10 bg-card p-2 shadow-2xl transition-transform duration-500 hover:scale-[1.01] cursor-pointer">
+                <div className="relative aspect-video overflow-hidden rounded-xl bg-muted">
+                  <Image
+                    src={imageUrl}
+                    alt={game.name}
+                    fill
+                    className="object-cover transition-transform duration-700 group-hover:scale-105"
+                    priority
+                    sizes="(max-width: 768px) 100vw, 50vw"
+                  />
+
+                  {/* Overlay con info */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-background/90 via-transparent to-transparent opacity-60 md:opacity-0 md:group-hover:opacity-100 transition-opacity duration-300 flex items-end p-6">
+                    <div className="flex items-center gap-2 text-foreground font-mono bg-background/80 backdrop-blur-sm px-3 py-1 rounded-full border border-border/50">
+                      <Zap className="h-4 w-4 text-green-400 fill-green-400" />
+                      <span className="text-xs font-bold tracking-widest">OFERTA DESTACADA</span>
+                    </div>
+                  </div>
+
+                  {/* Badge de descuento sobre la imagen */}
+                  {hasDiscount && (
+                    <div className="absolute top-3 right-3 bg-green-500 text-white font-bold text-sm px-3 py-1.5 rounded-lg shadow-lg">
+                      -{game.discountPercentage}%
+                    </div>
+                  )}
+                </div>
+              </Card>
+            </Link>
+          </div>
         </div>
       </div>
     </section>

@@ -106,6 +106,7 @@ export class ApiClient {
     platform?: string;
     genre?: string;
     sort?: string;
+    discounted?: boolean;
   }, options?: RequestInit): Promise<PaginatedResponse<Product>> {
     const query = new URLSearchParams();
     if (params?.page) query.append("page", params.page.toString());
@@ -114,6 +115,7 @@ export class ApiClient {
     if (params?.platform && params.platform !== 'all') query.append("platform", params.platform);
     if (params?.genre && params.genre !== 'all') query.append("genre", params.genre);
     if (params?.sort) query.append("sort", params.sort);
+    if (params?.discounted) query.append("discounted", "true");
 
     const queryString = query.toString() ? `?${query.toString()}` : "";
     const response = await this.request(`/products${queryString}`, options);
