@@ -350,6 +350,7 @@ function EditDialog({ itemId, type, onUpdate }: { itemId: string, type: VisualTy
     const [fetching, setFetching] = useState(false);
 
     // Form state
+    const [newId, setNewId] = useState("");
     const [name, setName] = useState("");
     const [imageUrl, setImageUrl] = useState("");
     const [isUploading, setIsUploading] = useState(false);
@@ -359,6 +360,7 @@ function EditDialog({ itemId, type, onUpdate }: { itemId: string, type: VisualTy
     useEffect(() => {
         if (open && itemId) {
             setFetching(true);
+            setNewId(""); // Reset newId
             const loadDetails = async () => {
                 try {
                     let data;
@@ -369,6 +371,7 @@ function EditDialog({ itemId, type, onUpdate }: { itemId: string, type: VisualTy
                     const item = data.data || data;
 
                     setName(item.name || "");
+                    setNewId(item.id || itemId); // Initialize with current ID
                     setImageUrl(item.imageId || item.image || "");
                 } catch (error) {
                     console.error("Error loading details:", error);
@@ -398,17 +401,24 @@ function EditDialog({ itemId, type, onUpdate }: { itemId: string, type: VisualTy
     };
 
     const handleSave = async () => {
+        if (!newId || !name) {
+            toast({ variant: "destructive", title: "Error", description: "ID y Nombre son obligatorios" });
+            return;
+        }
+
         setLoading(true);
         try {
-            const payload = { name, imageId: imageUrl };
+            const finalId = newId.trim().replace(/\s+/g, '-').toLowerCase();
+            const payload = { name, imageId: imageUrl, newId: finalId };
+
             if (type === 'platform') await ApiClient.updatePlatform(itemId, payload);
             else if (type === 'genre') await ApiClient.updateGenre(itemId, payload);
 
             toast({ title: "Actualizado correctamente" });
             setOpen(false);
             onUpdate();
-        } catch (error) {
-            toast({ variant: "destructive", title: "Error", description: "No se pudo guardar." });
+        } catch (error: any) {
+            toast({ variant: "destructive", title: "Error", description: error.message || "No se pudo guardar." });
         } finally {
             setLoading(false);
         }
@@ -421,15 +431,20 @@ function EditDialog({ itemId, type, onUpdate }: { itemId: string, type: VisualTy
             </DialogTrigger>
             <DialogContent>
                 <DialogHeader>
-                    <DialogTitle>Editar {type}</DialogTitle>
+                    <DialogTitle>Editar {type === 'platform' ? 'Plataforma' : 'Género'}</DialogTitle>
                 </DialogHeader>
                 {fetching ? (
                     <div className="flex justify-center p-8"><Loader2 className="animate-spin" /></div>
                 ) : (
                     <div className="grid gap-4 py-4">
                         <div className="grid grid-cols-4 items-center gap-4">
-                            <Label className="text-right text-muted-foreground">ID</Label>
-                            <Input value={itemId} disabled className="col-span-3 bg-muted" />
+                            <Label className="text-right">ID</Label>
+                            <Input
+                                value={newId}
+                                onChange={(e) => setNewId(e.target.value)}
+                                placeholder="Ej: accion-rpg"
+                                className="col-span-3"
+                            />
                         </div>
                         <div className="grid grid-cols-4 items-center gap-4">
                             <Label htmlFor="edit-name" className="text-right">Nombre</Label>
