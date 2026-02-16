@@ -30,7 +30,7 @@ export function ProductDetailView({ game }: ProductDetailViewProps) {
         const youtubeRegex = /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/i;
         const match = url.match(youtubeRegex);
         if (match && match[1]) {
-            return { type: 'youtube', src: `https://www.youtube.com/embed/${match[1]}?autoplay=0&mute=1&loop=1&playlist=${match[1]}` };
+            return { type: 'youtube', src: `https://www.youtube.com/embed/${match[1]}?autoplay=1&mute=1&loop=1&playlist=${match[1]}` };
         }
         return { type: 'video', src: url };
     };
