@@ -85,9 +85,8 @@ export default function AdminProductsPage() {
     <div className="space-y-6">
       <Card>
         <CardHeader className="space-y-4">
-          <h1 className="text-3xl font-bold font-headline">Gestión de Productos</h1>
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-            <p className="text-sm text-muted-foreground hidden sm:block">Inventario</p>
+            <h1 className="text-3xl font-bold font-headline">Gestión de Productos</h1>
 
             <div className="flex items-center gap-2 w-full sm:w-auto">
               <div className="relative w-full sm:w-64">
