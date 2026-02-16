@@ -49,11 +49,11 @@ export const ProductSchema = z.preprocess((val: any) => {
   trailerUrl: z.string().optional(),
   specPreset: z.enum(['Low', 'Mid', 'High']).optional().or(z.string().optional()),
   requirements: z.object({
-    os: z.string(),
-    processor: z.string(),
-    memory: z.string(),
-    graphics: z.string(),
-    storage: z.string()
+    os: z.string().optional().default(''),
+    processor: z.string().optional().default(''),
+    memory: z.string().optional().default(''),
+    graphics: z.string().optional().default(''),
+    storage: z.string().optional().default('')
   }).optional(),
   // Discount Fields
   finalPrice: z.coerce.number().default(0),
