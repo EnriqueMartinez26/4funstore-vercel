@@ -51,11 +51,6 @@ const items = [
         url: "/admin/orders",
         icon: ShoppingCart,
     },
-    {
-        title: "Volver a la Tienda",
-        url: "/",
-        icon: Home,
-    },
 ]
 
 export function AppSidebar() {
