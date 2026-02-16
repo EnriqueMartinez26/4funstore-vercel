@@ -34,6 +34,7 @@ export const PixelHero = ({
     name: title,
     description: description,
     price: price,
+    finalPrice: price,
     platform: { id: 'pc', name: 'PC', imageId: '' },
     genre: { id: 'rpg', name: 'RPG', imageId: '' },
     type: 'Digital',

@@ -153,25 +153,23 @@ export function ProductDetailView({ game }: ProductDetailViewProps) {
 
                             {/* Price & Actions */}
                             <div className="space-y-4">
-                                {game.price > 0 ? (
+                                {game.finalPrice > 0 ? (
                                     <div className="flex flex-col">
-                                        {game.originalPrice && game.originalPrice > game.price && (
+                                        {(game.discountPercentage ?? 0) > 0 && game.finalPrice < game.price && (
                                             <div className="flex items-center gap-2">
                                                 <span className="text-lg text-muted-foreground line-through decoration-red-500/50">
-                                                    {formatCurrency(game.originalPrice)}
+                                                    {formatCurrency(game.price)}
                                                 </span>
-                                                {game.discountPercentage && (
-                                                    <Badge className="bg-green-500 text-white animate-pulse">
-                                                        -{game.discountPercentage}%
-                                                    </Badge>
-                                                )}
+                                                <Badge className="bg-green-500 text-white animate-pulse">
+                                                    -{game.discountPercentage}%
+                                                </Badge>
                                             </div>
                                         )}
                                         <div className={cn(
                                             "text-3xl font-bold",
-                                            game.discountPercentage && game.discountPercentage > 0 ? "text-green-400" : "text-foreground"
+                                            (game.discountPercentage ?? 0) > 0 ? "text-green-400" : "text-foreground"
                                         )}>
-                                            {formatCurrency(game.price)}
+                                            {formatCurrency(game.finalPrice)}
                                         </div>
                                     </div>
                                 ) : (

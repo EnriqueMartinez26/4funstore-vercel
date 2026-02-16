@@ -51,7 +51,6 @@ const productSchema = z.object({
   trailerUrl: z.string().optional(),
   // Discount Fields
   isDiscounted: z.boolean().default(false),
-  originalPrice: z.coerce.number().optional(),
   discountPercentage: z.coerce.number().min(0).max(100).optional(),
   discountEndDate: z.string().optional(),
 });
@@ -72,7 +71,7 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
     resolver: zodResolver(productSchema),
     defaultValues: {
       name: "", description: "", price: 0, stock: 0, platformId: "", genreId: "", type: "Digital", developer: "Nintendo", specPreset: "Mid", imageUrl: "", trailerUrl: "",
-      isDiscounted: false, originalPrice: 0, discountPercentage: 0, discountEndDate: "",
+      isDiscounted: false, discountPercentage: 0, discountEndDate: "",
     },
   });
 
@@ -101,17 +100,10 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
           specPreset: ((p as any).specPreset || "Mid") as any,
           imageUrl: p.imageId,
           trailerUrl: p.trailerUrl || "",
-          // Discount Fields
-          // Si hay precio original, significa que hay descuento.
-          // En ese caso, el input "price" del formulario debe mostrar el PRECIO ORIGINAL (para que el usuario lo edite fácil)
-          // Si no hay descuento, price muestra el precio real.
-          isDiscounted: !!p.originalPrice && p.originalPrice > 0,
-          originalPrice: 0, // No usamos este campo en el UI, se calcula en submit
+          isDiscounted: (p.discountPercentage ?? 0) > 0,
           discountPercentage: p.discountPercentage || 0,
           discountEndDate: p.discountEndDate ? new Date(p.discountEndDate).toISOString().split('T')[0] : "",
-
-          // Override price logic for UI:
-          price: (p.originalPrice && p.originalPrice > 0) ? p.originalPrice : p.price
+          price: p.price
         });
       }
       setLoading(false);
@@ -141,19 +133,7 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
     try {
       const payload: any = { ...data };
 
-      // Lógica de Descuento
-      if (data.isDiscounted) {
-        // Si hay descuento activado:
-        // 1. El valor en el input 'price' se convierte en el Precio Original (base)
-        payload.originalPrice = data.price;
-        // 2. El precio real de venta se calcula restando el porcentaje
-        const discountDec = (data.discountPercentage || 0) / 100;
-        payload.price = Number((data.price * (1 - discountDec)).toFixed(2));
-      } else {
-        // Si NO hay descuento:
-        // 1. El valor en el input 'price' es el precio real
-        // 2. Limpiamos campos de descuento
-        payload.originalPrice = 0; // o null
+      if (!data.isDiscounted) {
         payload.discountPercentage = 0;
         payload.discountEndDate = "";
       }
@@ -220,7 +200,7 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
                 <div className="border rounded-lg p-4 space-y-4 bg-muted/20 animate-in fade-in slide-in-from-top-2 duration-300">
                   <h3 className="font-semibold text-lg">💰 Descuento</h3>
                   <div className="grid grid-cols-3 gap-4">
-                    {/* originalPrice Input REMOVED - Using main price input as base */}
+
                     <FormField control={form.control} name="discountPercentage" render={({ field }) => (
                       <FormItem>
                         <FormLabel>Descuento (%)</FormLabel>
@@ -236,7 +216,20 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
                       </FormItem>
                     )} />
                   </div>
-                  <p className="text-xs text-muted-foreground">Si el Precio Original es mayor a 0, el producto se mostrará con descuento.</p>
+                  {(() => {
+                    const pct = form.watch('discountPercentage') || 0;
+                    const base = form.watch('price') || 0;
+                    if (pct > 0 && base > 0) {
+                      const final = (base * (1 - pct / 100)).toFixed(2);
+                      return (
+                        <p className="text-sm font-medium text-green-400">
+                          Precio final: ${final} (ahorro de ${(base - Number(final)).toFixed(2)})
+                        </p>
+                      );
+                    }
+                    return null;
+                  })()}
+                  <p className="text-xs text-muted-foreground">El precio base no se modifica. El descuento se calcula dinámicamente.</p>
                 </div>
               )}
 

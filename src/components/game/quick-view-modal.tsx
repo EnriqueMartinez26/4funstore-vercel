@@ -61,9 +61,24 @@ export function QuickViewModal({ game, open, onOpenChange }: QuickViewModalProps
 
                         <div className="mt-6 space-y-4">
                             <div className="flex items-end justify-between">
-                                <span className="text-3xl font-bold text-primary">
-                                    {formatCurrency(game.price)}
-                                </span>
+                                <div className="flex flex-col">
+                                    {(game.discountPercentage ?? 0) > 0 && game.finalPrice < game.price && (
+                                        <div className="flex items-center gap-2 mb-1">
+                                            <span className="text-lg text-muted-foreground line-through decoration-red-500/50">
+                                                {formatCurrency(game.price)}
+                                            </span>
+                                            <Badge className="bg-green-500 text-white text-xs">
+                                                -{game.discountPercentage}%
+                                            </Badge>
+                                        </div>
+                                    )}
+                                    <span className={cn(
+                                        "text-3xl font-bold",
+                                        (game.discountPercentage ?? 0) > 0 ? "text-green-400" : "text-primary"
+                                    )}>
+                                        {formatCurrency(game.finalPrice)}
+                                    </span>
+                                </div>
                                 {!hasStock && <Badge variant="destructive">Agotado</Badge>}
                             </div>
 

@@ -56,7 +56,7 @@ export const ProductSchema = z.preprocess((val: any) => {
     storage: z.string()
   }).optional(),
   // Discount Fields
-  originalPrice: z.coerce.number().nullable().optional(),
+  finalPrice: z.coerce.number().default(0),
   discountPercentage: z.coerce.number().default(0),
   discountEndDate: z.string().nullable().optional()
 })).transform((data: any) => {
@@ -119,7 +119,7 @@ export const ProductSchema = z.preprocess((val: any) => {
     specPreset: data.specPreset,
     requirements: data.requirements,
     // Discount
-    originalPrice: data.originalPrice,
+    finalPrice: data.finalPrice || data.price,
     discountPercentage: data.discountPercentage || 0,
     discountEndDate: data.discountEndDate
   };

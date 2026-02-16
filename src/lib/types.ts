@@ -35,7 +35,7 @@ export type Game = {
     storage: string;
   };
   // Discount Fields
-  originalPrice?: number | null;
+  finalPrice: number;
   discountPercentage?: number;
   discountEndDate?: string | null;
 };

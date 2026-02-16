@@ -21,6 +21,7 @@ export function GameCard({ game }: GameCardProps) {
   const [showQuickView, setShowQuickView] = useState(false);
   const isWishlisted = isInWishlist(game.id);
   const hasStock = game.stock !== undefined && game.stock > 0;
+  const hasDiscount = (game.discountPercentage ?? 0) > 0 && game.finalPrice < game.price;
 
   // Fallback robusto para la imagen
   const imageUrl = (game.imageId && (game.imageId.startsWith('http') || game.imageId.startsWith('/')))
@@ -103,7 +104,7 @@ export function GameCard({ game }: GameCardProps) {
               {!hasStock && (
                 <Badge variant="destructive" className="bg-red-500/90 shadow-sm text-[10px]">Agotado</Badge>
               )}
-              {game.discountPercentage && game.discountPercentage > 0 && (
+              {hasDiscount && (
                 <Badge className="bg-green-500/90 shadow-sm text-[10px] animate-pulse">
                   -{game.discountPercentage}%
                 </Badge>
@@ -124,16 +125,16 @@ export function GameCard({ game }: GameCardProps) {
             </div>
 
             <div className="flex flex-col items-end">
-              {game.originalPrice && game.originalPrice > game.price && (
+              {hasDiscount && (
                 <span className="text-xs text-muted-foreground line-through decoration-red-500/50">
-                  {formatCurrency(game.originalPrice)}
+                  {formatCurrency(game.price)}
                 </span>
               )}
               <span className={cn(
                 "font-bold text-base md:text-lg bg-transparent",
-                game.discountPercentage && game.discountPercentage > 0 ? "text-green-400" : "text-foreground"
+                hasDiscount ? "text-green-400" : "text-foreground"
               )}>
-                {formatCurrency(game.price)}
+                {formatCurrency(game.finalPrice)}
               </span>
             </div>
           </div>
