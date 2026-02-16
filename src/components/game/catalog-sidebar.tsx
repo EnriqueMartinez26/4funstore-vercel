@@ -79,11 +79,11 @@ export function CatalogSidebar({
                     <AccordionContent>
                         <div className="px-1 py-4 space-y-4">
                             <Slider
-                                defaultValue={[0, 1000]}
+                                defaultValue={[0, 500]}
                                 value={priceRange}
                                 min={0}
-                                max={10000000} // Aumentado para soportar precios altos
-                                step={1000} // Pasos de 1000
+                                max={500} // Aumentado para soportar precios altos
+                                step={10} // Pasos de 10
                                 onValueChange={(val) => setPriceRange(val as [number, number])}
                             />
                             <div className="flex items-center justify-between text-sm">

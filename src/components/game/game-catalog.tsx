@@ -37,7 +37,7 @@ export function GameCatalog({ initialGames, initialTotalPages = 1 }: GameCatalog
   const [selectedGenres, setSelectedGenres] = useState<string[]>(
     initialGenre ? initialGenre.split(',').filter(Boolean) : []
   );
-  const [priceRange, setPriceRange] = useState<[number, number]>([0, 10000000]);
+  const [priceRange, setPriceRange] = useState<[number, number]>([0, 500]);
 
   // Dynamic Options
   const [platforms, setPlatforms] = useState<any[]>([]);
@@ -137,7 +137,7 @@ export function GameCatalog({ initialGames, initialTotalPages = 1 }: GameCatalog
     setSearchQuery('');
     setSelectedPlatforms([]);
     setSelectedGenres([]);
-    setPriceRange([0, 10000000]);
+    setPriceRange([0, 500]);
     setPage(1);
     // router.push already handled by the sync useEffect
   };
