@@ -117,7 +117,7 @@ export function GameCard({ game }: GameCardProps) {
             <div className="flex flex-col gap-0.5">
               <h3
                 id={`game-title-${game.id}`}
-                className="font-headline font-bold text-sm md:text-base leading-tight text-foreground truncate max-w-[180px] group-hover:text-primary transition-colors"
+                className="font-headline font-bold text-base md:text-lg leading-tight text-foreground truncate max-w-[200px] group-hover:text-primary transition-colors"
                 title={game.name}
               >
                 {game.name}
@@ -126,7 +126,7 @@ export function GameCard({ game }: GameCardProps) {
 
             <div className="flex flex-col items-end">
               {hasDiscount && (
-                <span className="text-xs text-muted-foreground line-through decoration-red-500/50">
+                <span className="text-sm text-muted-foreground line-through decoration-red-500/50">
                   {formatCurrency(game.price)}
                 </span>
               )}
