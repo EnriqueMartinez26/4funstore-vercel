@@ -98,7 +98,7 @@ export function ProductDetailView({ game }: ProductDetailViewProps) {
                         <div className="space-y-6">
                             <h2 className="text-2xl font-bold border-l-4 border-primary pl-4">Acerca de este juego</h2>
                             <div className="prose prose-invert max-w-none text-muted-foreground leading-relaxed text-lg">
-                                <p>{game.description || "Sin descripción disponible."}</p>
+                                <p className="whitespace-pre-line">{game.description || "Sin descripción disponible."}</p>
                             </div>
                         </div>
 
