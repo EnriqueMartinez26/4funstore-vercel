@@ -26,7 +26,7 @@ export const PixelHero = () => {
   useEffect(() => {
     const fetchDiscounted = async () => {
       try {
-        const res = await ApiClient.getProducts({ discounted: true, limit: 6 });
+        const res = await ApiClient.getProducts({ discounted: true, limit: 50 });
         const withRealDiscount = res.products.filter(
           (p) => (p.discountPercentage ?? 0) > 0 && p.finalPrice < p.price
         );

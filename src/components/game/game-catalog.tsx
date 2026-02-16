@@ -13,9 +13,10 @@ import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle } from '@/co
 
 interface GameCatalogProps {
   initialGames: Game[];
+  initialTotalPages?: number;
 }
 
-export function GameCatalog({ initialGames }: GameCatalogProps) {
+export function GameCatalog({ initialGames, initialTotalPages = 1 }: GameCatalogProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const initialSearch = searchParams.get('search') || '';
@@ -25,7 +26,7 @@ export function GameCatalog({ initialGames }: GameCatalogProps) {
   // Data State
   const [games, setGames] = useState<Game[]>(initialGames || []);
   const [loading, setLoading] = useState(false);
-  const [totalPages, setTotalPages] = useState(1);
+  const [totalPages, setTotalPages] = useState(initialTotalPages);
   const [page, setPage] = useState(1);
 
   // Filter State
