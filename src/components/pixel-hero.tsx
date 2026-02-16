@@ -246,33 +246,49 @@ export const PixelHero = () => {
             )}
           </div>
 
-          {/* Columna Imagen */}
+          {/* Columna Imagen — Box Art Vertical con fondo blur */}
           <div className="relative group animate-in slide-in-from-right duration-700 fade-in delay-200">
             <div className="absolute -inset-2 bg-gradient-to-r from-green-500/30 to-primary/30 rounded-2xl blur-xl opacity-20 group-hover:opacity-40 transition duration-1000 group-hover:duration-200" />
 
             <Link href={`/productos/${game.id}`}>
-              <Card className="relative overflow-hidden rounded-2xl border border-primary/10 bg-card p-2 shadow-2xl transition-transform duration-500 hover:scale-[1.01] cursor-pointer">
-                <div className="relative aspect-video overflow-hidden rounded-xl bg-muted">
+              <Card className="relative overflow-hidden rounded-2xl border border-primary/10 bg-card shadow-2xl transition-transform duration-500 hover:scale-[1.01] cursor-pointer">
+                {/* Contenedor con aspect ratio fijo */}
+                <div className="relative aspect-[4/3] md:aspect-[16/10] overflow-hidden bg-black">
+                  {/* Fondo Blur — la misma imagen desenfocada */}
                   <Image
                     src={imageUrl}
-                    alt={game.name}
+                    alt=""
                     fill
-                    className="object-cover transition-transform duration-700 group-hover:scale-105"
-                    priority
+                    className="object-cover scale-110 blur-2xl opacity-40"
                     sizes="(max-width: 768px) 100vw, 50vw"
+                    aria-hidden="true"
                   />
 
+                  {/* Imagen principal vertical centrada */}
+                  <div className="absolute inset-0 flex items-center justify-center p-4 md:p-6">
+                    <div className="relative h-full aspect-[3/4] rounded-lg overflow-hidden shadow-2xl ring-1 ring-white/10">
+                      <Image
+                        src={imageUrl}
+                        alt={game.name}
+                        fill
+                        className="object-cover transition-transform duration-700 group-hover:scale-105"
+                        priority
+                        sizes="300px"
+                      />
+                    </div>
+                  </div>
+
                   {/* Overlay con info */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-background/90 via-transparent to-transparent opacity-60 md:opacity-0 md:group-hover:opacity-100 transition-opacity duration-300 flex items-end p-6">
-                    <div className="flex items-center gap-2 text-foreground font-mono bg-background/80 backdrop-blur-sm px-3 py-1 rounded-full border border-border/50">
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-6">
+                    <div className="flex items-center gap-2 text-white font-mono bg-black/60 backdrop-blur-sm px-3 py-1 rounded-full border border-white/10">
                       <Zap className="h-4 w-4 text-green-400 fill-green-400" />
                       <span className="text-xs font-bold tracking-widest">OFERTA DESTACADA</span>
                     </div>
                   </div>
 
-                  {/* Badge de descuento sobre la imagen */}
+                  {/* Badge de descuento */}
                   {hasDiscount && (
-                    <div className="absolute top-3 right-3 bg-green-500 text-white font-bold text-sm px-3 py-1.5 rounded-lg shadow-lg">
+                    <div className="absolute top-3 right-3 bg-green-500 text-white font-bold text-sm px-3 py-1.5 rounded-lg shadow-lg z-10">
                       -{game.discountPercentage}%
                     </div>
                   )}
