@@ -84,7 +84,7 @@ export function GameCatalog({ initialGames, initialTotalPages = 1 }: GameCatalog
           search: searchQuery,
           platform: platformParam,
           genre: genreParam,
-          sort: '-createdAt'
+          sort: 'order'
         });
 
         if (Array.isArray(response)) {

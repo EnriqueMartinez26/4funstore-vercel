@@ -11,7 +11,7 @@ export default async function ProductosPage({
   const response = await ApiClient.getProducts({
     page: 1,
     limit: 12,
-    sort: '-createdAt',
+    sort: 'order', // Default to manual order
     genre: genre as string,
     platform: platform as string,
     search: search as string

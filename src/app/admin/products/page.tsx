@@ -11,7 +11,7 @@ import { TableSkeleton } from "@/components/ui/skeletons";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Plus, Pencil, Trash2, ChevronLeft, ChevronRight, Search } from "lucide-react";
+import { Loader2, Plus, Pencil, Trash2, ChevronLeft, ChevronRight, Search, ChevronUp, ChevronDown } from "lucide-react";
 import { formatCurrency } from "@/lib/utils";
 import type { Product } from "@/lib/schemas"; // Import strict Product type
 import type { Meta } from "@/lib/types"; // Import strict Meta type
@@ -32,7 +32,7 @@ export default function AdminProductsPage() {
       const response = await ApiClient.getProducts({
         page,
         limit: 10,
-        sort: '-createdAt',
+        sort: 'order', // Sort by manual order asc
         search: searchQuery
       });
       setProducts(response.products);
@@ -57,6 +57,15 @@ export default function AdminProductsPage() {
   const handlePageChange = (newPage: number) => {
     if (newPage >= 1 && newPage <= meta.totalPages) {
       loadProducts(newPage, search);
+    }
+  };
+
+  const handleReorder = async (id: string, direction: 'up' | 'down') => {
+    try {
+      await ApiClient.reorderProduct(id, direction);
+      loadProducts(meta.page, search);
+    } catch (error) {
+      toast({ variant: "destructive", title: "Error", description: "No se pudo reordenar el producto." });
     }
   };
 
@@ -133,7 +142,15 @@ export default function AdminProductsPage() {
                     <TableCell className="font-medium">{product.name}</TableCell>
                     <TableCell>{formatCurrency(product.price)}</TableCell>
                     <TableCell>{product.stock}</TableCell>
-                    <TableCell className="flex gap-2">
+                    <TableCell className="flex gap-1">
+                      <div className="flex flex-col mr-2">
+                        <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => handleReorder(product.id, 'up')}>
+                          <ChevronUp className="h-4 w-4" />
+                        </Button>
+                        <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => handleReorder(product.id, 'down')}>
+                          <ChevronDown className="h-4 w-4" />
+                        </Button>
+                      </div>
                       <Button variant="outline" size="icon" asChild>
                         <Link href={`/admin/products/${product.id}`}><Pencil className="h-4 w-4" /></Link>
                       </Button>
