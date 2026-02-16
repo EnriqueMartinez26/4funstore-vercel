@@ -27,8 +27,11 @@ export const PixelHero = () => {
     const fetchDiscounted = async () => {
       try {
         const res = await ApiClient.getProducts({ discounted: true, limit: 6 });
-        if (res.products.length > 0) {
-          setGames(res.products);
+        const withRealDiscount = res.products.filter(
+          (p) => (p.discountPercentage ?? 0) > 0 && p.finalPrice < p.price
+        );
+        if (withRealDiscount.length > 0) {
+          setGames(withRealDiscount);
         }
       } catch (e) {
         console.error("Error fetching discounted products:", e);
