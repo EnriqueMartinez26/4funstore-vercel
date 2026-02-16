@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
@@ -300,7 +300,8 @@ function CreateDialog({ type, onUpdate, label }: { type: VisualType, onUpdate: (
             setOpen(false);
             onUpdate();
         } catch (error) {
-            toast({ variant: "destructive", title: "Error", description: "No se pudo crear el elemento." });
+            const msg = error instanceof Error ? error.message : "Error al crear";
+            toast({ variant: "destructive", title: "Error", description: String(msg) });
         } finally {
             setLoading(false);
         }
@@ -314,6 +315,7 @@ function CreateDialog({ type, onUpdate, label }: { type: VisualType, onUpdate: (
             <DialogContent>
                 <DialogHeader>
                     <DialogTitle>{label}</DialogTitle>
+                    <DialogDescription className="sr-only">Formulario para crear nuevo elemento</DialogDescription>
                 </DialogHeader>
                 <div className="grid gap-4 py-4">
                     <div className="grid grid-cols-4 items-center gap-4">
@@ -417,8 +419,10 @@ function EditDialog({ itemId, type, onUpdate }: { itemId: string, type: VisualTy
             toast({ title: "Actualizado correctamente" });
             setOpen(false);
             onUpdate();
+            onUpdate();
         } catch (error: any) {
-            toast({ variant: "destructive", title: "Error", description: error.message || "No se pudo guardar." });
+            const msg = error?.message || "No se pudo guardar";
+            toast({ variant: "destructive", title: "Error", description: String(msg) });
         } finally {
             setLoading(false);
         }
@@ -432,6 +436,7 @@ function EditDialog({ itemId, type, onUpdate }: { itemId: string, type: VisualTy
             <DialogContent>
                 <DialogHeader>
                     <DialogTitle>Editar {type === 'platform' ? 'Plataforma' : 'Género'}</DialogTitle>
+                    <DialogDescription className="sr-only">Formulario para editar elemento</DialogDescription>
                 </DialogHeader>
                 {fetching ? (
                     <div className="flex justify-center p-8"><Loader2 className="animate-spin" /></div>
