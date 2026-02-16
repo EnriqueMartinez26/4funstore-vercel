@@ -51,6 +51,11 @@ const items = [
         url: "/admin/orders",
         icon: ShoppingCart,
     },
+    {
+        title: "Volver a la Tienda",
+        url: "/",
+        icon: Home,
+    },
 ]
 
 export function AppSidebar() {
@@ -86,22 +91,6 @@ export function AppSidebar() {
                                     </SidebarMenuButton>
                                 </SidebarMenuItem>
                             ))}
-                        </SidebarMenu>
-                    </SidebarGroupContent>
-                </SidebarGroup>
-
-                <SidebarGroup className="mt-auto">
-                    <SidebarGroupLabel>Tienda</SidebarGroupLabel>
-                    <SidebarGroupContent>
-                        <SidebarMenu>
-                            <SidebarMenuItem>
-                                <SidebarMenuButton asChild>
-                                    <Link href="/" className="flex items-center gap-3">
-                                        <Home className="!h-5 !w-5 lg:!h-6 lg:!w-6" />
-                                        <span className="text-base lg:text-lg">Volver a la Tienda</span>
-                                    </Link>
-                                </SidebarMenuButton>
-                            </SidebarMenuItem>
                         </SidebarMenu>
                     </SidebarGroupContent>
                 </SidebarGroup>
