@@ -42,9 +42,7 @@ const productSchema = z.object({
   platformId: z.string().min(1, "Selecciona una plataforma"),
   genreId: z.string().min(1, "Selecciona un género"),
   type: z.enum(["Digital", "Physical"]),
-  developer: z.enum(DEVELOPERS, {
-    errorMap: () => ({ message: "Selecciona un desarrollador válido" })
-  }),
+  developer: z.string().min(1, "El desarrollador es requerido"),
   specPreset: z.enum(SPEC_PRESETS, {
     errorMap: () => ({ message: "Selecciona un preset de requisitos" })
   }),
@@ -58,6 +56,7 @@ export default function NewProductPage() {
   useAuth(); // Verifica autenticación de admin
   const { toast } = useToast();
   const [isUploading, setIsUploading] = useState(false);
+  const [isCustomDev, setIsCustomDev] = useState(false);
   const [platforms, setPlatforms] = useState<any[]>([]);
   const [genres, setGenres] = useState<any[]>([]);
 
@@ -183,12 +182,37 @@ export default function NewProductPage() {
               <FormField control={form.control} name="developer" render={({ field }) => (
                 <FormItem>
                   <FormLabel>Desarrollador</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
-                    <FormControl><SelectTrigger><SelectValue placeholder="Seleccionar empresa" /></SelectTrigger></FormControl>
-                    <SelectContent>
-                      {DEVELOPERS.map((dev) => (<SelectItem key={dev} value={dev}>{dev}</SelectItem>))}
-                    </SelectContent>
-                  </Select>
+                  {isCustomDev ? (
+                    <div className="flex gap-2">
+                      <FormControl>
+                        <Input
+                          placeholder="Ej: Behaviour Interactive Inc."
+                          value={field.value}
+                          onChange={field.onChange}
+                          autoFocus
+                        />
+                      </FormControl>
+                      <Button type="button" variant="outline" size="sm" className="shrink-0" onClick={() => {
+                        setIsCustomDev(false);
+                        field.onChange(DEVELOPERS[0]);
+                      }}>Cancelar</Button>
+                    </div>
+                  ) : (
+                    <Select onValueChange={(val) => {
+                      if (val === '__custom__') {
+                        setIsCustomDev(true);
+                        field.onChange('');
+                      } else {
+                        field.onChange(val);
+                      }
+                    }} defaultValue={field.value}>
+                      <FormControl><SelectTrigger><SelectValue placeholder="Seleccionar empresa" /></SelectTrigger></FormControl>
+                      <SelectContent>
+                        {DEVELOPERS.map((dev) => (<SelectItem key={dev} value={dev}>{dev}</SelectItem>))}
+                        <SelectItem value="__custom__" className="text-primary font-semibold">+ Añadir otro</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  )}
                   <FormMessage />
                 </FormItem>
               )} />
