@@ -226,31 +226,6 @@ export function ProductDetailView({ game }: ProductDetailViewProps) {
                                 <MetaRow icon={<Disc className="w-4 h-4" />} label="Tipo" value={game.type === 'Physical' ? 'Físico' : 'Digital (Key)'} />
                                 <MetaRow icon={<Info className="w-4 h-4" />} label="Lanzamiento" value={new Date(game.releaseDate).toLocaleDateString()} />
                             </div>
-
-                            {/* Requisitos del Sistema */}
-                            {game.requirements && game.requirements.os && (
-                                <>
-                                    <Separator className="bg-white/10" />
-                                    <div className="space-y-3">
-                                        <h3 className="font-headline text-sm font-bold text-foreground flex items-center gap-2">
-                                            <Monitor className="w-4 h-4 text-primary" />
-                                            Requisitos del Sistema
-                                            {game.specPreset && (
-                                                <Badge variant="secondary" className="text-xs ml-auto font-mono">
-                                                    {game.specPreset === 'Low' ? 'Bajos' : game.specPreset === 'Mid' ? 'Medios' : 'Altos'}
-                                                </Badge>
-                                            )}
-                                        </h3>
-                                        <div className="space-y-2 text-xs">
-                                            <SpecRow label="SO" value={game.requirements.os} />
-                                            <SpecRow label="Procesador" value={game.requirements.processor} />
-                                            <SpecRow label="Memoria" value={game.requirements.memory} />
-                                            <SpecRow label="Gráficos" value={game.requirements.graphics} />
-                                            <SpecRow label="Almacenamiento" value={game.requirements.storage} />
-                                        </div>
-                                    </div>
-                                </>
-                            )}
                         </div>
                     </div>
                 </div>
