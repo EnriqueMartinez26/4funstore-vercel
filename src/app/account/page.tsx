@@ -53,7 +53,7 @@ export default function AccountPage() {
 
   useEffect(() => {
     if (user) {
-      ApiClient.getUserOrders(user.id)
+      ApiClient.getUserOrders()
         .then((res) => {
           if (res.success) setOrders(res.orders);
         })

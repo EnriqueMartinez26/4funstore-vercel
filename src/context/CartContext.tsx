@@ -32,7 +32,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
   const fetchCart = async () => {
     try {
-      const cartRes = await ApiClient.getCart(user?.id);
+      const cartRes = await ApiClient.getCart();
       setCart(cartRes.cart?.items || []);
     } catch (err) {
       console.error("Error fetching cart:", err);
@@ -40,9 +40,9 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   };
 
   const fetchWishlist = async () => {
-    if (!user?.id) return;
+    if (!user) return;
     try {
-      const wishRes = await ApiClient.getWishlist(user.id);
+      const wishRes = await ApiClient.getWishlist();
       setWishlist(wishRes);
     } catch (err) {
       console.error("Error fetching wishlist:", err);
@@ -87,7 +87,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       // Estrategia: Actualización Optimista (Optimistic UI)
       setCart(prev => [...prev, newItem]);
       try {
-        await ApiClient.addToCart(user.id, product.id, quantity);
+        await ApiClient.addToCart(product.id, quantity);
         await fetchCart(); // Solo resincronizar carrito para obtener IDs reales
         toast({ title: "Agregado al carrito", description: `${product.name} añadido.` });
       } catch (e: any) {
@@ -119,7 +119,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       const oldCart = [...cart];
       setCart(prev => prev.map(i => i.id === itemId ? { ...i, quantity } : i));
       try {
-        await ApiClient.updateCartItem(user.id, itemId, quantity);
+        await ApiClient.updateCartItem(itemId, quantity);
       } catch {
         setCart(oldCart); // Rollback
       }
@@ -135,7 +135,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       const oldCart = [...cart];
       setCart(prev => prev.filter(i => i.id !== itemId));
       try {
-        await ApiClient.removeFromCart(user.id, itemId);
+        await ApiClient.removeFromCart(itemId);
       } catch {
         setCart(oldCart);
       }
@@ -149,7 +149,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   const clearCart = async () => {
     if (user) {
       setCart([]);
-      await ApiClient.clearCart(user.id);
+      await ApiClient.clearCart();
     } else {
       setCart([]);
       localStorage.removeItem('cart');
@@ -164,7 +164,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     const exists = isInWishlist(game.id);
     // Optimistic UI
     setWishlist(prev => exists ? prev.filter(p => p.id !== game.id) : [...prev, game]);
-    try { await ApiClient.toggleWishlist(user.id, game.id); } catch { syncData(); }
+    try { await ApiClient.toggleWishlist(game.id); } catch { syncData(); }
   };
 
   const isInWishlist = (id: string) => wishlist.some(g => g.id === id);

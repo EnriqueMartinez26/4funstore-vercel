@@ -278,9 +278,8 @@ export class ApiClient {
   }
 
 
-  static async getCart(userId?: string) {
-    if (!userId) return { cart: { items: [] } };
-    const data = await this.request(`/cart/${userId}`);
+  static async getCart() {
+    const data = await this.request('/cart');
     if (data.cart?.items) {
       data.cart.items = data.cart.items.map((item: any) => {
         let parsedProduct = null;
@@ -302,25 +301,25 @@ export class ApiClient {
     return data;
   }
 
-  static async addToCart(userId: string, productId: string, quantity: number) {
-    return this.request('/cart', { method: 'POST', body: JSON.stringify({ userId, productId, quantity }) });
+  static async addToCart(productId: string, quantity: number) {
+    return this.request('/cart', { method: 'POST', body: JSON.stringify({ productId, quantity }) });
   }
 
-  static async removeFromCart(userId: string, itemId: string) {
-    return this.request(`/cart/${userId}/${itemId}`, { method: 'DELETE' });
+  static async removeFromCart(itemId: string) {
+    return this.request(`/cart/${itemId}`, { method: 'DELETE' });
   }
 
-  static async updateCartItem(userId: string, itemId: string, quantity: number) {
-    return this.request('/cart', { method: 'PUT', body: JSON.stringify({ userId, itemId, quantity }) });
+  static async updateCartItem(itemId: string, quantity: number) {
+    return this.request('/cart', { method: 'PUT', body: JSON.stringify({ itemId, quantity }) });
   }
 
-  static async clearCart(userId: string) {
-    return this.request(`/cart/${userId}`, { method: 'DELETE' });
+  static async clearCart() {
+    return this.request('/cart', { method: 'DELETE' });
   }
 
 
-  static async getWishlist(userId: string) {
-    const response = await this.request(`/wishlist/${userId}`);
+  static async getWishlist() {
+    const response = await this.request('/wishlist');
     if (Array.isArray(response.wishlist)) {
       return response.wishlist.map((item: any) => {
         try { return ProductSchema.parse(item); } catch { return null; }
@@ -329,8 +328,8 @@ export class ApiClient {
     return [];
   }
 
-  static async toggleWishlist(userId: string, productId: string) {
-    return this.request('/wishlist/toggle', { method: 'POST', body: JSON.stringify({ userId, productId }) });
+  static async toggleWishlist(productId: string) {
+    return this.request('/wishlist/toggle', { method: 'POST', body: JSON.stringify({ productId }) });
   }
 
 
@@ -339,8 +338,8 @@ export class ApiClient {
   }
 
 
-  static async getUserOrders(userId: string) {
-    return this.request(`/orders/user/${userId}`);
+  static async getUserOrders() {
+    return this.request('/orders/user');
   }
 
 
