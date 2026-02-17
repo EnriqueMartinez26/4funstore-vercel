@@ -42,8 +42,16 @@ export class ApiClient {
     const data = await response.json();
 
     if (!response.ok) {
-      // Normalizamos el mensaje de error (viene en mil formatos distintos)
-      const errorMessage = data.message || data.error || (Array.isArray(data.errors) ? data.errors.map((e: any) => e.msg || e.message).join(', ') : JSON.stringify(data.errors)) || `Error API: ${response.statusText}`;
+      // Normalizamos el mensaje de error para evitar que sea un Objeto y rompa React
+      let errorMessage = data.message || data.error;
+
+      if (Array.isArray(data.errors)) {
+        errorMessage = data.errors.map((e: any) => e.msg || e.message).join(', ');
+      } else if (typeof errorMessage === 'object') {
+        errorMessage = errorMessage.message || JSON.stringify(errorMessage);
+      }
+
+      errorMessage = errorMessage || `Error API: ${response.statusText}`;
 
       if (response.status === 401) {
         Logger.debug(`[API Auth] 401 Unauthorized:`, errorMessage);
@@ -345,5 +353,21 @@ export class ApiClient {
 
   static async getKeysByProduct(productId: string) {
     return this.request(`/keys/product/${productId}`);
+  }
+
+  // --- DASHBOARD (ADMIN) ---
+  static async getDashboardStats() {
+    const res = await this.request('/dashboard/stats');
+    return res.data;
+  }
+
+  static async getSalesChart() {
+    const res = await this.request('/dashboard/chart');
+    return res.data;
+  }
+
+  static async getTopProducts() {
+    const res = await this.request('/dashboard/top-products');
+    return res.data;
   }
 }
