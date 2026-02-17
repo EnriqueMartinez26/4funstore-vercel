@@ -26,7 +26,7 @@ export const PixelHero = () => {
   useEffect(() => {
     const fetchDiscounted = async () => {
       try {
-        const res = await ApiClient.getProducts({ discounted: true, limit: 50 });
+        const res = await ApiClient.getProducts({ discounted: true, limit: 10 });
         const withRealDiscount = res.products.filter(
           (p) => (p.discountPercentage ?? 0) > 0 && p.finalPrice < p.price
         );
@@ -160,10 +160,10 @@ export const PixelHero = () => {
             </div>
 
             <div className="space-y-3">
-              <h1 className="font-headline text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl lg:text-6xl text-foreground drop-shadow-sm line-clamp-2">
+              <h1 className="font-headline text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl lg:text-6xl text-foreground drop-shadow-sm line-clamp-2 min-h-[2.2em]">
                 {game.name}
               </h1>
-              <p className="max-w-[600px] text-muted-foreground text-base md:text-lg font-body leading-relaxed line-clamp-3">
+              <p className="max-w-[600px] text-muted-foreground text-base md:text-lg font-body leading-relaxed line-clamp-3 min-h-[4.8em]">
                 {game.description}
               </p>
             </div>
