@@ -218,27 +218,7 @@ export class ApiClient {
   }
 
 
-  static async getCategories() {
-    const res = await this.request('/categories');
-    return res.data || res;
-  }
-  static async getCategoryById(id: string) { return this.request(`/categories/${id}`); }
-  static async createCategory(data: any) {
-    return this.request('/categories', { method: 'POST', body: JSON.stringify(data) });
-  }
-  static async updateCategory(id: string, data: any) {
-    return this.request(`/categories/${id}`, { method: 'PUT', body: JSON.stringify(data) });
-  }
-  static async deleteCategory(id: string) {
-    return this.request(`/categories/${id}`, { method: 'DELETE' });
-  }
-  static async deleteCategoriesBulk(ids: string[]) {
-    return this.request('/categories/multi', {
-      method: 'DELETE',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ ids })
-    });
-  }
+
 
 
   static async getPlatforms() {
