@@ -116,7 +116,7 @@ export const PixelHero = () => {
   const hasDiscount = (game.discountPercentage ?? 0) > 0 && game.finalPrice < game.price;
 
   return (
-    <section className="relative w-full overflow-hidden bg-background py-12 md:py-24 lg:py-28">
+    <section className="relative w-full overflow-hidden bg-background py-8 md:py-12 lg:py-16">
       {/* Fondo Grid */}
       <div className="absolute inset-0 z-0 opacity-[0.03]"
         style={{
@@ -128,7 +128,7 @@ export const PixelHero = () => {
 
       <div className="container relative z-10 mx-auto px-4">
         {/* Header de sección */}
-        <div className="flex items-center gap-3 mb-8 md:mb-12">
+        <div className="flex items-center gap-3 mb-6 md:mb-8">
           <div className="flex items-center gap-2 bg-green-500/10 border border-green-500/20 rounded-full px-4 py-1.5">
             <Zap className="h-4 w-4 text-green-400 fill-green-400" />
             <span className="text-sm font-bold text-green-400 tracking-wider uppercase font-mono">Descuentos</span>
@@ -139,12 +139,12 @@ export const PixelHero = () => {
         </div>
 
         <div className={cn(
-          "grid gap-8 lg:grid-cols-2 lg:gap-16 items-center transition-all duration-300",
+          "grid gap-6 lg:grid-cols-2 lg:gap-10 items-center transition-all duration-300",
           transitioning ? "opacity-0 translate-y-2" : "opacity-100 translate-y-0"
         )}>
 
           {/* Columna Texto */}
-          <div className="space-y-6">
+          <div className="space-y-4">
             <div className="flex flex-wrap gap-2">
               {hasDiscount && (
                 <Badge className="bg-green-500 text-white font-mono text-sm px-3 py-1 animate-pulse">
@@ -160,10 +160,10 @@ export const PixelHero = () => {
             </div>
 
             <div className="space-y-3">
-              <h1 className="font-headline text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl lg:text-6xl text-foreground drop-shadow-sm line-clamp-2 min-h-[2.2em]">
+              <h1 className="font-headline text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl lg:text-5xl text-foreground drop-shadow-sm line-clamp-2 min-h-[2.2em]">
                 {game.name}
               </h1>
-              <p className="max-w-[600px] text-muted-foreground text-base md:text-lg font-body leading-relaxed line-clamp-3 min-h-[4.8em]">
+              <p className="max-w-[600px] text-muted-foreground text-sm md:text-base font-body leading-relaxed line-clamp-3 min-h-[4.8em]">
                 {game.description}
               </p>
             </div>
@@ -186,7 +186,7 @@ export const PixelHero = () => {
             <div className="flex flex-col sm:flex-row gap-4">
               <Button
                 size="lg"
-                className="bg-primary hover:bg-primary/90 text-primary-foreground font-headline text-lg h-14 px-8 shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all duration-300"
+                className="bg-primary hover:bg-primary/90 text-primary-foreground font-headline text-lg h-11 px-6 shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all duration-300"
                 onClick={() => addToCart(gameObj)}
                 disabled={game.stock <= 0}
               >
@@ -197,7 +197,7 @@ export const PixelHero = () => {
               <Button
                 variant="outline"
                 size="lg"
-                className="h-14 px-8 border-2 border-primary/10 hover:bg-primary/5 hover:border-primary/30 text-foreground transition-all"
+                className="h-11 px-6 border-2 border-primary/10 hover:bg-primary/5 hover:border-primary/30 text-foreground transition-all"
                 asChild
               >
                 <Link href={`/productos/${game.id}`}>
@@ -256,7 +256,7 @@ export const PixelHero = () => {
             <Link href={`/productos/${game.id}`}>
               <Card className="relative overflow-hidden rounded-2xl border border-primary/10 bg-card shadow-2xl transition-transform duration-500 hover:scale-[1.01] cursor-pointer">
                 {/* Contenedor con aspect ratio fijo */}
-                <div className="relative aspect-[4/3] md:aspect-[16/10] overflow-hidden bg-black">
+                <div className="relative aspect-[4/3] md:aspect-[16/9] overflow-hidden bg-black">
                   {/* Fondo Blur — la misma imagen desenfocada */}
                   <Image
                     src={imageUrl}
