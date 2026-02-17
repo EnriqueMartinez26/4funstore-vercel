@@ -51,6 +51,11 @@ const items = [
         url: "/admin/orders",
         icon: ShoppingCart,
     },
+    {
+        title: "Usuarios",
+        url: "/admin/users",
+        icon: User,
+    },
 ]
 
 export function AppSidebar() {

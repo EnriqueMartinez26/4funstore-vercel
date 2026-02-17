@@ -370,4 +370,31 @@ export class ApiClient {
     const res = await this.request('/dashboard/top-products');
     return res.data;
   }
+
+  // --- USER MANAGEMENT (ADMIN) ---
+  static async getUsers(params: { page?: number; limit?: number; search?: string; role?: string }) {
+    const query = new URLSearchParams();
+    if (params.page) query.append("page", params.page.toString());
+    if (params.limit) query.append("limit", params.limit.toString());
+    if (params.search) query.append("search", params.search);
+    if (params.role && params.role !== 'all') query.append("role", params.role);
+
+    return this.request(`/users?${query.toString()}`);
+  }
+
+  static async getUserById(id: string) {
+    return this.request(`/users/${id}`);
+  }
+
+  static async updateUser(id: string, data: any) {
+    return this.request(`/users/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    });
+  }
+
+  static async deleteUser(id: string) {
+    return this.request(`/users/${id}`, { method: 'DELETE' });
+  }
 }
