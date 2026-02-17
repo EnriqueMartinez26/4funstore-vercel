@@ -160,7 +160,7 @@ export const PixelHero = () => {
             </div>
 
             <div className="space-y-3">
-              <h1 className="font-headline text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl lg:text-5xl text-foreground drop-shadow-sm line-clamp-2 min-h-[2.2em]">
+              <h1 className="font-headline text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl lg:text-5xl text-foreground drop-shadow-sm line-clamp-2 leading-tight">
                 {game.name}
               </h1>
               <p className="max-w-[600px] text-muted-foreground text-sm md:text-base font-body leading-relaxed line-clamp-3 min-h-[4.8em]">
