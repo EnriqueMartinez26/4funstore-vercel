@@ -23,7 +23,7 @@ export default function Error({
                 <h2 className="text-3xl font-bold font-headline">Algo salió mal</h2>
             </div>
             <p className="text-muted-foreground max-w-md">
-                Ocurrió un error inesperado. Por favor intenta recargar la página o vuelve más tarde.
+                Ocurrió un error inesperado. Por favor intenta recargar la página o vuelva más tarde.
             </p>
             <div className="flex gap-4">
                 <Button onClick={() => reset()}>Intentar de nuevo</Button>
