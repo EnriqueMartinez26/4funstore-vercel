@@ -204,7 +204,7 @@ export default function UsersPage() {
                                         <TableCell>
                                             <Avatar>
                                                 <AvatarFallback className="bg-primary/10 text-primary font-bold">
-                                                    {user.name.substring(0, 2).toUpperCase()}
+                                                    {(user.name || 'U').substring(0, 2).toUpperCase()}
                                                 </AvatarFallback>
                                             </Avatar>
                                         </TableCell>
