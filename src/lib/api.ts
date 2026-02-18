@@ -29,6 +29,7 @@ export class ApiClient {
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
       ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
+      'ngrok-skip-browser-warning': 'true',
       ...options.headers as any
     };
 
