@@ -158,9 +158,6 @@ function LoginForm() {
               Regístrate aquí
             </Link>
           </div>
-          <div className="text-xs">
-            Credenciales demo: admin@golstore.com | password123
-          </div>
         </CardFooter>
       </Card>
     </div>
