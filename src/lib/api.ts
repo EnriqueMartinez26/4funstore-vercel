@@ -67,6 +67,7 @@ export class ApiClient {
 
   static async login(data: { email: string; password: string }) { return this.request('/auth/login', { method: 'POST', body: JSON.stringify(data) }); }
   static async register(data: { name: string; email: string; password: string }) { return this.request('/auth/register', { method: 'POST', body: JSON.stringify(data) }); }
+  static async verifyEmail(token: string) { return this.request(`/auth/verify?token=${token}`); }
 
   static async getProfile() {
     try {
