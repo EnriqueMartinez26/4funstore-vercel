@@ -4,11 +4,9 @@ import { z } from 'zod';
 import { Logger } from './logger';
 
 const getBaseUrl = () => {
-  if (typeof window === 'undefined') {
-    return process.env.NEXT_PUBLIC_API_URL || 'http://localhost:9003';
-  }
-  // Client-side: Path relativo para aprovechar los rewrites de Next.js (proxy al backend)
-  return '';
+  // Eliminamos el typeof window para que SIEMPRE apunte directo al backend,
+  // saltándonos el proxy de Vercel que causa el Timeout.
+  return process.env.NEXT_PUBLIC_API_URL || 'http://localhost:9003';
 };
 
 export class ApiError extends Error {
@@ -20,11 +18,16 @@ export class ApiError extends Error {
 
 export class ApiClient {
   private static async request(endpoint: string, options: RequestInit = {}) {
-    const baseUrl = getBaseUrl();
+    let baseUrl = getBaseUrl();
+
+    // Limpieza de seguridad por si la URL tiene una barra al final en Vercel
+    if (baseUrl.endsWith('/')) {
+      baseUrl = baseUrl.slice(0, -1);
+    }
+
     const apiPath = baseUrl.endsWith('/api') ? '' : '/api';
     const url = `${baseUrl}${apiPath}${endpoint}`;
 
-    // Fallback: Token en localStorage cuando el proxy de Next.js no propaga cookies HttpOnly
     const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
