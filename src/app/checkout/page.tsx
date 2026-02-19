@@ -78,7 +78,7 @@ export default function CheckoutPage() {
     setIsSubmitting(true);
 
     const orderData = {
-      user: user.id,
+      userId: user.id,
       orderItems: cart.map(item => ({
         product: item.productId,
         name: item.name,
@@ -90,7 +90,7 @@ export default function CheckoutPage() {
         street: formData.street,
         city: formData.city,
         state: formData.state,
-        zipCode: formData.zipCode,
+        zip: formData.zipCode,
         country: formData.country
       },
       paymentMethod: formData.paymentMethod,
@@ -100,7 +100,7 @@ export default function CheckoutPage() {
     };
 
     try {
-      const response = await ApiClient.createOrder(orderData);
+      const response = await ApiClient.createOrder(orderData as any);
 
       if (response.paymentLink) {
         toast({ title: "Procesando...", description: "Redirigiendo a Mercado Pago" });

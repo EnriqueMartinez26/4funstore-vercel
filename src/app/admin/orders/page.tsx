@@ -75,7 +75,7 @@ export default function AdminOrdersPage() {
     const [searchTerm, setSearchTerm] = useState("");
     const filteredOrders = mockOrders.filter(o =>
         o.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        o.shippingAddress.fullName.toLowerCase().includes(searchTerm.toLowerCase())
+        (o.shippingAddress.fullName?.toLowerCase() || "").includes(searchTerm.toLowerCase())
     );
 
     return (

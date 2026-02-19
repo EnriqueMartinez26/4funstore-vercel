@@ -54,8 +54,8 @@ export default function AccountPage() {
   useEffect(() => {
     if (user) {
       ApiClient.getUserOrders()
-        .then((res) => {
-          if (res.success) setOrders(res.orders);
+        .then((orders) => {
+          setOrders(orders as any); // Cast temporal para compatibilidad con interfaz local
         })
         .catch(console.error)
         .finally(() => setLoadingOrders(false));

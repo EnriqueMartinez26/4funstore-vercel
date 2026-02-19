@@ -87,16 +87,25 @@ export interface Order {
   id: string;
   userId: string;
   user?: User;
-  items: CartItem[];
+  items: CartItem[]; // Backend puede devolver 'orderItems' o 'items'
+  orderItems?: CartItem[];
   total: number;
+  totalPrice?: number; // Alias común
   status: OrderStatus;
+  orderStatus?: string; // Backend raw status
+  isPaid?: boolean;
+  digitalKeys?: { productoId: string; clave: string }[];
   createdAt: string;
   shippingAddress: {
-    fullName: string;
+    fullName?: string; // Puede no venir
     street: string;
     city: string;
     zip: string;
     country: string;
+    state?: string;
   };
   paymentMethod: string;
+  shippingPrice?: number;
+  itemsPrice?: number;
+  paymentLink?: string; // Para checkout
 }

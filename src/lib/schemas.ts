@@ -41,7 +41,7 @@ export const ProductSchema = z.preprocess((val: any) => {
   // Backend returns objects for platform/genre now
   platform: z.object({ id: z.string(), name: z.string().optional(), imageId: z.string().optional() }).or(z.string()).optional(),
   genre: z.object({ id: z.string(), name: z.string().optional(), imageId: z.string().optional() }).or(z.string()).optional(),
-  type: z.string().optional().default("Digital"),
+  type: z.enum(['Digital', 'Physical']).optional().default("Digital").or(z.string().optional().default("Digital")), // Fallback a string si viene algo raro, pero intentamos tipar
   developer: z.string().optional().default("Unknown"),
   rating: z.coerce.number().default(0),
   releaseDate: z.string().or(z.date()).optional(),
@@ -110,7 +110,7 @@ export const ProductSchema = z.preprocess((val: any) => {
       : "https://placehold.co/600x400/png?text=4Fun",
     platform: platformData,
     genre: genreData,
-    type: data.type === 'Fisico' ? 'Physical' : 'Digital',
+    type: (data.type === 'Fisico' || data.type === 'Physical') ? 'Physical' : 'Digital',
     developer: data.developer,
     rating: data.rating,
     releaseDate: data.releaseDate ? new Date(data.releaseDate).toISOString() : new Date().toISOString(),
@@ -125,7 +125,7 @@ export const ProductSchema = z.preprocess((val: any) => {
   };
 });
 
-export type Product = z.infer<typeof ProductSchema>;
+export type Product = Omit<z.infer<typeof ProductSchema>, 'type'> & { type: 'Digital' | 'Physical' };
 
 // Auth Schemas
 export const LoginSchema = z.object({
@@ -145,3 +145,4 @@ export const RegisterSchema = z.object({
 
 export type LoginValues = z.infer<typeof LoginSchema>;
 export type RegisterValues = z.infer<typeof RegisterSchema>;
+export type RegisterPayload = Omit<RegisterValues, 'confirmPassword'>;

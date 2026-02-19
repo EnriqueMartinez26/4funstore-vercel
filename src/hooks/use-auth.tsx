@@ -28,9 +28,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       try {
         Logger.debug("[Auth] Verificando sesión con Backend...");
         const response = await ApiClient.getProfile();
-        // El backend devuelve { success: true, data: user }
-        if (response.success && (response.data || response.user)) {
-          setUser(response.data || response.user);
+        if (response.success && response.user) {
+          setUser(response.user);
         }
       } catch (error) {
         // Si falla, es que no hay cookie válida o expiró

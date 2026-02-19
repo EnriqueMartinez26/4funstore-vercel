@@ -1,5 +1,5 @@
-import { ProductSchema, type Product } from './schemas';
-import type { PaginatedResponse } from './types';
+import { ProductSchema, type Product, LoginSchema, RegisterSchema, type LoginValues, type RegisterValues, type RegisterPayload } from './schemas';
+import type { PaginatedResponse, User, Order, CartItem, OrderStatus, ApiResponse, Meta } from './types';
 import { z } from 'zod';
 import { Logger } from './logger';
 
@@ -16,8 +16,25 @@ export class ApiError extends Error {
   }
 }
 
+// TODO: Mover esto a un archivo de tipos si crece mucho - por ahora zfamos.
+interface ProductInput {
+  name: string;
+  description: string;
+  price: number | string;
+  platformId: string;
+  genreId: string;
+  type: string;
+  developer: string;
+  imageUrl?: string;
+  trailerUrl?: string;
+  stock: number | string;
+  specPreset?: string;
+  discountPercentage?: number | string;
+  discountEndDate?: string | null;
+}
+
 export class ApiClient {
-  private static async request(endpoint: string, options: RequestInit = {}) {
+  private static async request<T = any>(endpoint: string, options: RequestInit = {}): Promise<T> {
     let baseUrl = getBaseUrl();
 
     // Limpieza de seguridad por si la URL tiene una barra al final en Vercel
@@ -42,6 +59,11 @@ export class ApiClient {
       credentials: 'include', // Equivalente a withCredentials: true en Axios. CRUCIAL para envíar cookies.
       headers,
     });
+
+    // Ojo: Si la respuesta es 204 No Content, no intentamos parsear JSON porque explota.
+    if (response.status === 204) {
+      return {} as T;
+    }
 
     const data = await response.json();
 
@@ -68,15 +90,16 @@ export class ApiClient {
   }
 
 
-  static async login(data: { email: string; password: string }) { return this.request('/auth/login', { method: 'POST', body: JSON.stringify(data) }); }
-  static async register(data: { name: string; email: string; password: string }) { return this.request('/auth/register', { method: 'POST', body: JSON.stringify(data) }); }
-  static async verifyEmail(token: string) { return this.request(`/auth/verify?token=${token}`); }
+  static async login(data: LoginValues) { return this.request<{ success: boolean; token: string; user: User }>('/auth/login', { method: 'POST', body: JSON.stringify(data) }); }
+  static async register(data: RegisterPayload) { return this.request<{ success: boolean; token: string; user: User }>('/auth/register', { method: 'POST', body: JSON.stringify(data) }); }
+  static async verifyEmail(token: string) { return this.request<{ success: boolean; message: string }>(`/auth/verify?token=${token}`); }
 
   static async getProfile() {
     try {
-      return await this.request('/auth/profile');
+      return await this.request<{ success: boolean; user: User }>('/auth/profile');
     } catch (error: any) {
       // Si no estamos autenticados (401), retornamos success: false limpiamente
+      // Esto evita que la app explote si el token expiró.
       if (error.status === 401 || error?.response?.status === 401 || (error instanceof ApiError && error.status === 401)) {
         return { success: false, user: null };
       }
@@ -131,13 +154,16 @@ export class ApiClient {
     if (params?.discounted) query.append("discounted", "true");
 
     const queryString = query.toString() ? `?${query.toString()}` : "";
-    const response = await this.request(`/products${queryString}`, options);
 
-    const emptyMeta = { total: 0, page: 1, limit: 10, totalPages: 1 };
+    // Usamos 'any' acá temporalmente porque la respuesta cruda del backend puede variar
+    // antes de ser normalizada.
+    const response = await this.request<any>(`/products${queryString}`, options);
+
+    const emptyMeta: Meta = { total: 0, page: 1, limit: 10, totalPages: 1 };
 
     // Chequeamos si es array plano o paginado
-    let rawProducts = [];
-    let meta = emptyMeta;
+    let rawProducts: any[] = [];
+    let meta: Meta = emptyMeta;
 
     if (Array.isArray(response)) {
       rawProducts = response;
@@ -159,7 +185,7 @@ export class ApiClient {
     const parsedProducts = rawProducts.map((item: any) => {
       try { return ProductSchema.parse(item); } catch (e) {
         Logger.error("Product parse error:", e);
-        return null;
+        return null; // Filtramos productos rotos para no romper la UI
       }
     }).filter(Boolean) as Product[];
 
@@ -169,16 +195,16 @@ export class ApiClient {
     };
   }
 
-  static async getProductById(id: string) {
-    const response = await this.request(`/products/${id}`);
-    return ProductSchema.parse(response.data || response);
+  static async getProductById(id: string): Promise<Product> {
+    const response = await this.request<any>(`/products/${id}`);
+    return ProductSchema.parse(response.data || response) as Product;
   }
 
-  static async createProduct(productData: any) {
+  static async createProduct(productData: ProductInput) {
     const backendPayload = {
       name: productData.name,
       description: productData.description,
-      price: parseFloat(productData.price),
+      price: parseFloat(String(productData.price)),
       platform: productData.platformId,
       genre: productData.genreId,
       type: productData.type,
@@ -186,7 +212,7 @@ export class ApiClient {
       developer: productData.developer,
       imageId: productData.imageUrl,
       trailerUrl: productData.trailerUrl,
-      stock: parseInt(productData.stock),
+      stock: parseInt(String(productData.stock)),
       active: true,
       specPreset: productData.specPreset,
       discountPercentage: Number(productData.discountPercentage) || 0,
@@ -195,7 +221,7 @@ export class ApiClient {
     return this.request('/products', { method: 'POST', body: JSON.stringify(backendPayload) });
   }
 
-  static async updateProduct(id: string, productData: any) {
+  static async updateProduct(id: string, productData: ProductInput) {
     const backendPayload = {
       name: productData.name,
       description: productData.description,
@@ -231,18 +257,17 @@ export class ApiClient {
   }
 
 
-
-
+  // --- PLATFORMS & GENRES ---
 
   static async getPlatforms() {
-    const res = await this.request('/platforms');
+    const res = await this.request<any>('/platforms');
     return res.data || res;
   }
   static async getPlatformById(id: string) { return this.request(`/platforms/${id}`); }
-  static async createPlatform(data: any) {
+  static async createPlatform(data: { name: string; imageId?: string }) {
     return this.request('/platforms', { method: 'POST', body: JSON.stringify(data) });
   }
-  static async updatePlatform(id: string, data: any) {
+  static async updatePlatform(id: string, data: { name?: string; imageId?: string }) {
     return this.request(`/platforms/${id}`, { method: 'PUT', body: JSON.stringify(data) });
   }
   static async deletePlatform(id: string) {
@@ -257,14 +282,14 @@ export class ApiClient {
   }
 
   static async getGenres() {
-    const res = await this.request('/genres');
+    const res = await this.request<any>('/genres');
     return res.data || res;
   }
   static async getGenreById(id: string) { return this.request(`/genres/${id}`); }
-  static async createGenre(data: any) {
+  static async createGenre(data: { name: string; imageId?: string }) {
     return this.request('/genres', { method: 'POST', body: JSON.stringify(data) });
   }
-  static async updateGenre(id: string, data: any) {
+  static async updateGenre(id: string, data: { name?: string; imageId?: string }) {
     return this.request(`/genres/${id}`, { method: 'PUT', body: JSON.stringify(data) });
   }
   static async deleteGenre(id: string) {
@@ -279,8 +304,11 @@ export class ApiClient {
   }
 
 
+  // --- CART ---
+
   static async getCart() {
-    const data = await this.request('/cart');
+    const data = await this.request<any>('/cart');
+    // Si el backend devuelve items populados, intentamos parsear para asegurar integridad
     if (data.cart?.items) {
       data.cart.items = data.cart.items.map((item: any) => {
         let parsedProduct = null;
@@ -319,12 +347,14 @@ export class ApiClient {
   }
 
 
-  static async getWishlist() {
-    const response = await this.request('/wishlist');
+  // --- WISHLIST ---
+
+  static async getWishlist(): Promise<Product[]> {
+    const response = await this.request<any>('/wishlist');
     if (Array.isArray(response.wishlist)) {
       return response.wishlist.map((item: any) => {
         try { return ProductSchema.parse(item); } catch { return null; }
-      }).filter(Boolean);
+      }).filter(Boolean) as Product[];
     }
     return [];
   }
@@ -334,13 +364,15 @@ export class ApiClient {
   }
 
 
-  static async createOrder(orderData: any) {
+  // --- ORDERS ---
+
+  static async createOrder(orderData: Partial<Order>) {
     return this.request('/orders', { method: 'POST', body: JSON.stringify(orderData) });
   }
 
 
   static async getUserOrders() {
-    return this.request('/orders/user');
+    return this.request<Order[]>('/orders/user');
   }
 
 
@@ -357,22 +389,22 @@ export class ApiClient {
   }
 
   static async getKeysByProduct(productId: string) {
-    return this.request(`/keys/product/${productId}`);
+    return this.request<any>(`/keys/product/${productId}`);
   }
 
   // --- DASHBOARD (ADMIN) ---
   static async getDashboardStats() {
-    const res = await this.request('/dashboard/stats');
+    const res = await this.request<any>('/dashboard/stats');
     return res.data;
   }
 
   static async getSalesChart() {
-    const res = await this.request('/dashboard/chart');
+    const res = await this.request<any>('/dashboard/chart');
     return res.data;
   }
 
   static async getTopProducts() {
-    const res = await this.request('/dashboard/top-products');
+    const res = await this.request<any>('/dashboard/top-products');
     return res.data;
   }
 
@@ -384,14 +416,14 @@ export class ApiClient {
     if (params.search) query.append("search", params.search);
     if (params.role && params.role !== 'all') query.append("role", params.role);
 
-    return this.request(`/users?${query.toString()}`);
+    return this.request<any>(`/users?${query.toString()}`);
   }
 
   static async getUserById(id: string) {
-    return this.request(`/users/${id}`);
+    return this.request<User>(`/users/${id}`);
   }
 
-  static async updateUser(id: string, data: any) {
+  static async updateUser(id: string, data: Partial<User>) {
     return this.request(`/users/${id}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
