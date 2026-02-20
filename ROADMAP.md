@@ -5,7 +5,7 @@ Este documento recopila ideas y sugerencias para elevar la calidad del proyecto 
 ## 1. Experiencia de Usuario (UX) y Diseño (UI)
 
 ### Admin Panel
-- [ ] **Tablero de Control (Dashboard):** Implementar una página de inicio para el admin (`/admin`) con métricas clave:
+- [x] **Tablero de Control (Dashboard):** Implementar una página de inicio para el admin (`/admin`) con métricas clave:
     - Total de ventas del mes.
     - Productos con bajo stock (Low Stock Alert).
     - Nuevos usuarios registrados.
@@ -19,9 +19,9 @@ Este documento recopila ideas y sugerencias para elevar la calidad del proyecto 
 
 ### Cliente / Tienda
 - [ ] **Búsqueda Avanzada:** Implementar una barra de búsqueda global con autocompletado en el header (Cmd+K).
-- [ ] **Filtros Dinámicos:** En la página de catálogo, agregar filtros laterales por Precio (Slider), Plataforma y Género (Checkboxes).
-- [ ] **Vista Rápida (Quick View):** Permitir ver detalles del producto en un modal sin salir del catálogo.
-- [ ] **Transiciones:** Utilizar `framer-motion` para animar la entrada de productos en la grilla y pasos del checkout.
+- [x] **Filtros Dinámicos:** En la página de catálogo, agregar filtros laterales por Precio (Slider), Plataforma y Género (Checkboxes).
+- [x] **Vista Rápida (Quick View):** Permitir ver detalles del producto en un modal sin salir del catálogo.
+- [x] **Transiciones:** Utilizar `framer-motion` para animar la entrada de productos en la grilla y pasos del checkout.
 
 ## 2. Funcionalidad
 
@@ -29,7 +29,7 @@ Este documento recopila ideas y sugerencias para elevar la calidad del proyecto 
 - [ ] **Gestión de Órdenes:** Panel para ver y cambiar estado de pedidos (Pendiente -> Enviado -> Entregado).
 - [ ] **Checkout Real:** Integrar una pasarela de pago ficticia o real (Stripe/MercadoPago en modo sandbox).
 - [ ] **Lista de Deseos (Wishlist):** Finalizar implementación (si está inconclusa).
-- [ ] **Comparador de Productos:** Seleccionar 2-3 juegos y comparar atributos.
+- [x] **Comparador de Productos:** Seleccionar 2-3 juegos y comparar atributos.
 
 ## 3. SEO y Performance
 

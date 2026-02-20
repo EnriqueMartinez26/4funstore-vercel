@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from 'react';
+import { motion } from 'framer-motion';
 import { GameCard } from './game-card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -223,11 +224,32 @@ export function GameCatalog({ initialGames, initialTotalPages = 1 }: GameCatalog
               </div>
             ) : displayedGames.length > 0 ? (
               <>
-                <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
+                <motion.div
+                  className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6"
+                  initial="hidden"
+                  animate="visible"
+                  variants={{
+                    hidden: { opacity: 0 },
+                    visible: {
+                      opacity: 1,
+                      transition: {
+                        staggerChildren: 0.1
+                      }
+                    }
+                  }}
+                >
                   {displayedGames.map((game) => (
-                    <GameCard key={game.id} game={game} />
+                    <motion.div
+                      key={game.id}
+                      variants={{
+                        hidden: { opacity: 0, y: 20 },
+                        visible: { opacity: 1, y: 0, transition: { duration: 0.4, ease: "easeOut" } }
+                      }}
+                    >
+                      <GameCard game={game} />
+                    </motion.div>
                   ))}
-                </div>
+                </motion.div>
 
                 {/* Pagination */}
                 <div className="flex justify-center items-center gap-4 mt-12 border-t pt-8">

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { motion, AnimatePresence } from "framer-motion";
 import { useCart } from "@/context/CartContext";
 import { useAuth } from "@/hooks/use-auth";
 import { ApiClient } from "@/lib/api";
@@ -162,97 +163,121 @@ export default function CheckoutPage() {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2 space-y-6">
+          <AnimatePresence mode="wait">
+            {/* Step 1: Shipping */}
+            {currentStep === 1 && (
+              <motion.div
+                key="step1"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                transition={{ duration: 0.3 }}
+              >
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Dirección de Envío</CardTitle>
+                    <CardDescription>¿A dónde enviamos tus juegos?</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <form id="shipping-form" onSubmit={nextStep} className="space-y-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-2"><Label>Calle y Número</Label><Input name="street" required value={formData.street} onChange={handleChange} placeholder="Av. Siempreviva 742" /></div>
+                        <div className="space-y-2"><Label>Ciudad</Label><Input name="city" required value={formData.city} onChange={handleChange} placeholder="Springfield" /></div>
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div className="space-y-2"><Label>Provincia/Estado</Label><Input name="state" required value={formData.state} onChange={handleChange} /></div>
+                        <div className="space-y-2"><Label>Código Postal</Label><Input name="zipCode" required value={formData.zipCode} onChange={handleChange} /></div>
+                        <div className="space-y-2"><Label>País</Label><Input name="country" required value={formData.country} onChange={handleChange} /></div>
+                      </div>
+                    </form>
+                  </CardContent>
+                  <CardFooter className="flex justify-end">
+                    <Button type="submit" form="shipping-form">
+                      Continuar a Pago
+                    </Button>
+                  </CardFooter>
+                </Card>
+              </motion.div>
+            )}
 
-          {/* Step 1: Shipping */}
-          {currentStep === 1 && (
-            <Card className="animate-in fade-in slide-in-from-right-4 duration-300">
-              <CardHeader>
-                <CardTitle>Dirección de Envío</CardTitle>
-                <CardDescription>¿A dónde enviamos tus juegos?</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <form id="shipping-form" onSubmit={nextStep} className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-2"><Label>Calle y Número</Label><Input name="street" required value={formData.street} onChange={handleChange} placeholder="Av. Siempreviva 742" /></div>
-                    <div className="space-y-2"><Label>Ciudad</Label><Input name="city" required value={formData.city} onChange={handleChange} placeholder="Springfield" /></div>
-                  </div>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div className="space-y-2"><Label>Provincia/Estado</Label><Input name="state" required value={formData.state} onChange={handleChange} /></div>
-                    <div className="space-y-2"><Label>Código Postal</Label><Input name="zipCode" required value={formData.zipCode} onChange={handleChange} /></div>
-                    <div className="space-y-2"><Label>País</Label><Input name="country" required value={formData.country} onChange={handleChange} /></div>
-                  </div>
-                </form>
-              </CardContent>
-              <CardFooter className="flex justify-end">
-                <Button type="submit" form="shipping-form">
-                  Continuar a Pago
-                </Button>
-              </CardFooter>
-            </Card>
-          )}
+            {/* Step 2: Payment */}
+            {currentStep === 2 && (
+              <motion.div
+                key="step2"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                transition={{ duration: 0.3 }}
+              >
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Método de Pago</CardTitle>
+                    <CardDescription>Selecciona cómo quieres abonar.</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <RadioGroup defaultValue={formData.paymentMethod} onValueChange={(val) => setFormData({ ...formData, paymentMethod: val })}>
+                      <div className={cn("flex items-center space-x-2 border p-4 rounded-md mb-2 cursor-pointer transition-colors", formData.paymentMethod === 'mercadopago' && "border-primary bg-primary/5")}>
+                        <RadioGroupItem value="mercadopago" id="mercadopago" />
+                        <Label htmlFor="mercadopago" className="flex items-center gap-2 cursor-pointer w-full font-bold">
+                          <CreditCard className="h-5 w-5 text-blue-500" />
+                          Mercado Pago
+                          <span className="ml-auto text-xs font-normal text-muted-foreground bg-background px-2 py-1 rounded-full border">Tarjetas / Efectivo / QR</span>
+                        </Label>
+                      </div>
+                    </RadioGroup>
+                  </CardContent>
+                  <CardFooter className="flex justify-between">
+                    <Button variant="outline" onClick={prevStep}>Atrás</Button>
+                    <Button onClick={() => nextStep()}>Revisar Pedido</Button>
+                  </CardFooter>
+                </Card>
+              </motion.div>
+            )}
 
-          {/* Step 2: Payment */}
-          {currentStep === 2 && (
-            <Card className="animate-in fade-in slide-in-from-right-4 duration-300">
-              <CardHeader>
-                <CardTitle>Método de Pago</CardTitle>
-                <CardDescription>Selecciona cómo quieres abonar.</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <RadioGroup defaultValue={formData.paymentMethod} onValueChange={(val) => setFormData({ ...formData, paymentMethod: val })}>
-                  <div className={cn("flex items-center space-x-2 border p-4 rounded-md mb-2 cursor-pointer transition-colors", formData.paymentMethod === 'mercadopago' && "border-primary bg-primary/5")}>
-                    <RadioGroupItem value="mercadopago" id="mercadopago" />
-                    <Label htmlFor="mercadopago" className="flex items-center gap-2 cursor-pointer w-full font-bold">
-                      <CreditCard className="h-5 w-5 text-blue-500" />
-                      Mercado Pago
-                      <span className="ml-auto text-xs font-normal text-muted-foreground bg-background px-2 py-1 rounded-full border">Tarjetas / Efectivo / QR</span>
-                    </Label>
-                  </div>
-                </RadioGroup>
-              </CardContent>
-              <CardFooter className="flex justify-between">
-                <Button variant="outline" onClick={prevStep}>Atrás</Button>
-                <Button onClick={() => nextStep()}>Revisar Pedido</Button>
-              </CardFooter>
-            </Card>
-          )}
-
-          {/* Step 3: Review */}
-          {currentStep === 3 && (
-            <Card className="animate-in fade-in slide-in-from-right-4 duration-300">
-              <CardHeader>
-                <CardTitle>Revisar y Confirmar</CardTitle>
-                <CardDescription>Verifica que todo esté correcto antes de pagar.</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <div>
-                  <h4 className="font-semibold mb-2 flex items-center gap-2">
-                    <MapPin className="h-4 w-4" /> Dirección de Envío
-                  </h4>
-                  <p className="text-sm text-muted-foreground">
-                    {formData.street}, {formData.city}, {formData.zipCode}, {formData.country}
-                  </p>
-                </div>
-                <Separator />
-                <div>
-                  <h4 className="font-semibold mb-2 flex items-center gap-2">
-                    <CreditCard className="h-4 w-4" /> Método de Pago
-                  </h4>
-                  <p className="text-sm text-muted-foreground uppercase">
-                    {formData.paymentMethod}
-                  </p>
-                </div>
-              </CardContent>
-              <CardFooter className="flex justify-between">
-                <Button variant="outline" onClick={prevStep}>Atrás</Button>
-                <Button className="font-bold shadow-md hover:shadow-xl transition-all glow-effect" size="lg" onClick={handleSubmit} disabled={isSubmitting}>
-                  {isSubmitting ? <Loader2 className="animate-spin mr-2" /> : <ShieldCheck className="mr-2 h-5 w-5" />}
-                  Confirmar y Pagar
-                </Button>
-              </CardFooter>
-            </Card>
-          )}
-
+            {/* Step 3: Review */}
+            {currentStep === 3 && (
+              <motion.div
+                key="step3"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                transition={{ duration: 0.3 }}
+              >
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Revisar y Confirmar</CardTitle>
+                    <CardDescription>Verifica que todo esté correcto antes de pagar.</CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-6">
+                    <div>
+                      <h4 className="font-semibold mb-2 flex items-center gap-2">
+                        <MapPin className="h-4 w-4" /> Dirección de Envío
+                      </h4>
+                      <p className="text-sm text-muted-foreground">
+                        {formData.street}, {formData.city}, {formData.zipCode}, {formData.country}
+                      </p>
+                    </div>
+                    <Separator />
+                    <div>
+                      <h4 className="font-semibold mb-2 flex items-center gap-2">
+                        <CreditCard className="h-4 w-4" /> Método de Pago
+                      </h4>
+                      <p className="text-sm text-muted-foreground uppercase">
+                        {formData.paymentMethod}
+                      </p>
+                    </div>
+                  </CardContent>
+                  <CardFooter className="flex justify-between">
+                    <Button variant="outline" onClick={prevStep}>Atrás</Button>
+                    <Button className="font-bold shadow-md hover:shadow-xl transition-all glow-effect" size="lg" onClick={handleSubmit} disabled={isSubmitting}>
+                      {isSubmitting ? <Loader2 className="animate-spin mr-2" /> : <ShieldCheck className="mr-2 h-5 w-5" />}
+                      Confirmar y Pagar
+                    </Button>
+                  </CardFooter>
+                </Card>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
 
         {/* Sidebar Summary (Visible Always) */}
