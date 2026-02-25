@@ -7,7 +7,7 @@ import { Separator } from "@/components/ui/separator";
 import { useComparator } from "@/context/ComparatorContext";
 import { ShoppingCart, Heart, Scale } from "lucide-react"; // Scale for compare
 import Image from "next/image";
-import { formatCurrency, cn } from "@/lib/utils";
+import { formatCurrency, cn, getImageUrl } from "@/lib/utils";
 import type { Game } from "@/lib/types";
 import { useCart } from "@/context/CartContext";
 import Link from "next/link"; // Add import for Link
@@ -25,9 +25,7 @@ export function QuickViewModal({ game, open, onOpenChange }: QuickViewModalProps
     const isCompared = isInCompare(game.id);
     const hasStock = game.stock !== undefined && game.stock > 0;
 
-    const imageUrl = (game.imageId && (game.imageId.startsWith('http') || game.imageId.startsWith('/')))
-        ? game.imageId
-        : "https://placehold.co/600x400/png?text=4Fun";
+    const imageUrl = getImageUrl(game.imageId);
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>

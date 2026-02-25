@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useRef, use } from "react";
+import { useEffect, useState, use } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/use-auth";
 import { ApiClient } from "@/lib/api";
@@ -26,28 +26,13 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { KeyManager } from "@/components/admin/key-manager";
+import { adminProductBaseSchema } from "@/lib/schemas";
+import { DEVELOPERS, SPEC_PRESETS } from "@/lib/constants";
+import { useImageUpload } from "@/hooks/use-image-upload";
 
-const DEVELOPERS = [
-  'Nintendo', 'Sony Interactive Entertainment', 'Xbox Game Studios', 'Tencent Games', 'Ubisoft', 'Electronic Arts (EA)', 'Take-Two Interactive', 'Activision Blizzard', 'Capcom', 'Bandai Namco Entertainment'
-] as const;
-
-const SPEC_PRESETS = ['Low', 'Mid', 'High'] as const;
-
-const productSchema = z.object({
-  name: z.string().min(3, "El nombre debe tener al menos 3 caracteres"),
-  description: z.string().min(10, "La descripción debe ser más detallada"),
-  price: z.coerce.number().min(0.01, "El precio debe ser mayor a 0"),
-  stock: z.coerce.number().int().min(0, "El stock no puede ser negativo"),
-  platformId: z.string().min(1, "Selecciona una plataforma"),
-  genreId: z.string().min(1, "Selecciona un género"),
-  type: z.enum(["Digital", "Physical"]),
-  developer: z.string().min(1, "El desarrollador es requerido"),
-  specPreset: z.enum(SPEC_PRESETS, {
-    errorMap: () => ({ message: "Selecciona un preset de requisitos" })
-  }),
-  imageUrl: z.string().url("Debes subir una imagen válida"),
+// Edit form extends the base schema with optional extra fields
+const productSchema = adminProductBaseSchema.extend({
   trailerUrl: z.string().optional(),
-  // Discount Fields
   isDiscounted: z.boolean().default(false),
   discountPercentage: z.coerce.number().min(0).max(100).optional(),
   discountEndDate: z.string().optional(),
@@ -62,7 +47,6 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
   const { user } = useAuth();
   const { toast } = useToast();
   const [loading, setLoading] = useState(true);
-  const [isUploading, setIsUploading] = useState(false);
   const [platforms, setPlatforms] = useState<any[]>([]);
   const [genres, setGenres] = useState<any[]>([]);
 
@@ -74,17 +58,19 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
     },
   });
 
-  useEffect(() => {
-    // 1. Fetch auxiliary data
-    Promise.all([
-      ApiClient.getPlatforms(),
-      ApiClient.getGenres()
-    ]).then(([pData, gData]) => {
-      setPlatforms(Array.isArray(pData) ? pData : (pData?.data || []));
-      setGenres(Array.isArray(gData) ? gData : (gData?.data || []));
-    }).catch(console.error);
+  const { isUploading, handleImageUpload } = useImageUpload({
+    onSuccess: (url) => form.setValue("imageUrl", url),
+    successMessage: "Imagen actualizada",
+  });
 
-    // 2. Fetch Product data
+  useEffect(() => {
+    Promise.all([ApiClient.getPlatforms(), ApiClient.getGenres()])
+      .then(([pData, gData]) => {
+        setPlatforms(Array.isArray(pData) ? pData : (pData?.data || []));
+        setGenres(Array.isArray(gData) ? gData : (gData?.data || []));
+      })
+      .catch(console.error);
+
     if (id === 'new') return;
     ApiClient.getProductById(id).then(p => {
       if (p) {
@@ -114,32 +100,14 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
       setLoading(false);
     });
   }, [id, form, toast]);
-  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    setIsUploading(true);
-
-    try {
-      const url = await ApiClient.uploadImage(file);
-      form.setValue("imageUrl", url);
-      toast({ title: "Imagen actualizada" });
-    } catch (error) {
-      toast({ variant: "destructive", title: "Error al subir imagen" });
-    } finally {
-      setIsUploading(false);
-    }
-  };
 
   const onSubmit = async (data: ProductFormValues) => {
     try {
       const payload: any = { ...data };
-
       if (!data.isDiscounted) {
         payload.discountPercentage = 0;
         payload.discountEndDate = "";
       }
-
       await ApiClient.updateProduct(id, payload);
       toast({ title: "Éxito", description: "Producto actualizado correctamente." });
       router.push("/admin/products");
@@ -186,10 +154,7 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
               <FormField control={form.control} name="isDiscounted" render={({ field }) => (
                 <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
                   <FormControl>
-                    <Checkbox
-                      checked={field.value}
-                      onCheckedChange={field.onChange}
-                    />
+                    <Checkbox checked={field.value} onCheckedChange={field.onChange} />
                   </FormControl>
                   <div className="space-y-1 leading-none">
                     <FormLabel>Producto con descuento</FormLabel>
@@ -197,12 +162,10 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
                 </FormItem>
               )} />
 
-              {/* Discount Section (Conditional) */}
               {form.watch('isDiscounted') && (
                 <div className="border rounded-lg p-4 space-y-4 bg-muted/20 animate-in fade-in slide-in-from-top-2 duration-300">
                   <h3 className="font-semibold text-lg">💰 Descuento</h3>
                   <div className="grid grid-cols-3 gap-4">
-
                     <FormField control={form.control} name="discountPercentage" render={({ field }) => (
                       <FormItem>
                         <FormLabel>Descuento (%)</FormLabel>
@@ -235,7 +198,6 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
                 </div>
               )}
 
-              {/* Plataforma, Género y Desarrollador */}
               <div className="grid grid-cols-2 gap-4">
                 <FormField control={form.control} name="platformId" render={({ field }) => (
                   <FormItem>
@@ -265,27 +227,12 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
                   {isCustomDev ? (
                     <div className="flex gap-2">
                       <FormControl>
-                        <Input
-                          placeholder="Ej: Behaviour Interactive Inc."
-                          value={field.value}
-                          onChange={field.onChange}
-                          autoFocus
-                        />
+                        <Input placeholder="Ej: Behaviour Interactive Inc." value={field.value} onChange={field.onChange} autoFocus />
                       </FormControl>
-                      <Button type="button" variant="outline" size="sm" className="shrink-0" onClick={() => {
-                        setIsCustomDev(false);
-                        field.onChange(DEVELOPERS[0]);
-                      }}>Cancelar</Button>
+                      <Button type="button" variant="outline" size="sm" className="shrink-0" onClick={() => { setIsCustomDev(false); field.onChange(DEVELOPERS[0]); }}>Cancelar</Button>
                     </div>
                   ) : (
-                    <Select onValueChange={(val) => {
-                      if (val === '__custom__') {
-                        setIsCustomDev(true);
-                        field.onChange('');
-                      } else {
-                        field.onChange(val);
-                      }
-                    }} value={DEVELOPERS.includes(field.value as any) ? field.value : '__show_current__'}>
+                    <Select onValueChange={(val) => { if (val === '__custom__') { setIsCustomDev(true); field.onChange(''); } else { field.onChange(val); } }} value={DEVELOPERS.includes(field.value as any) ? field.value : '__show_current__'}>
                       <FormControl><SelectTrigger><SelectValue placeholder="Seleccionar empresa">{DEVELOPERS.includes(field.value as any) ? field.value : field.value || 'Seleccionar empresa'}</SelectValue></SelectTrigger></FormControl>
                       <SelectContent>
                         {DEVELOPERS.map((dev) => (<SelectItem key={dev} value={dev}>{dev}</SelectItem>))}
@@ -330,19 +277,16 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
               </FormItem>
 
               <Button type="submit" className="w-full" disabled={form.formState.isSubmitting || isUploading}>
-                {form.formState.isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : "Guardar Cambios"}
+                {form.formState.isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <><Save className="mr-2 h-4 w-4" />Guardar Cambios</>}
               </Button>
             </form>
           </Form>
         </CardContent>
       </Card>
 
-      {/* KEY MANAGER SECTION (Only for Digital Products and Existing Products) */}
-      {
-        id !== 'new' && form.watch('type') === 'Digital' && (
-          <KeyManager productId={id} productName={form.getValues('name')} />
-        )
-      }
-    </div >
+      {id !== 'new' && form.watch('type') === 'Digital' && (
+        <KeyManager productId={id} productName={form.getValues('name')} />
+      )}
+    </div>
   );
 }

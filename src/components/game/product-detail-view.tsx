@@ -7,7 +7,7 @@ import Link from "next/link";
 import { useAuth } from "@/hooks/use-auth";
 import type { Game } from "@/lib/types";
 import { useCart } from "@/context/CartContext";
-import { formatCurrency, cn } from "@/lib/utils";
+import { formatCurrency, cn, getImageUrl } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
@@ -36,10 +36,7 @@ export function ProductDetailView({ game }: ProductDetailViewProps) {
     };
 
     const isWishlisted = isInWishlist(game.id);
-    // Fallback image logic
-    const imageUrl = (game.imageId && (game.imageId.startsWith('http') || game.imageId.startsWith('/')))
-        ? game.imageId
-        : "https://placehold.co/600x800/222/FFF?text=No+Image";
+    const imageUrl = getImageUrl(game.imageId, "https://placehold.co/600x800/222/FFF?text=No+Image");
 
     return (
         <div className="min-h-screen bg-background text-foreground pb-20 relative">
