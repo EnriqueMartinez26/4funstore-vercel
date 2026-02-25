@@ -4,8 +4,13 @@ import { z } from 'zod';
 import { Logger } from './logger';
 
 const getBaseUrl = () => {
-  // Eliminamos el typeof window para que SIEMPRE apunte directo al backend,
-  // saltándonos el proxy de Vercel que causa el Timeout.
+  // En el browser usamos URL relativa para que las peticiones pasen por el proxy
+  // de Next.js (rewrites en next.config.ts). Esto evita problemas de CORS con
+  // credentials: 'include' y garantiza que el backend reciba las peticiones
+  // (necesario para el envío de emails al registrarse).
+  if (typeof window !== 'undefined') {
+    return '';
+  }
   return process.env.NEXT_PUBLIC_API_URL || 'http://localhost:9003';
 };
 
