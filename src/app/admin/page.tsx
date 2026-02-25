@@ -50,11 +50,12 @@ export default function AdminDashboardPage() {
 
                 setStats(statsData);
                 // Formateamos fechas para el gráfico (ej: "2024-02-17" -> "17 Feb")
-                setChartData(chartRes.map((item: any) => ({
+                const chartArr = Array.isArray(chartRes) ? chartRes : [];
+                setChartData(chartArr.map((item: any) => ({
                     ...item,
                     displayDate: new Date(item.date).toLocaleDateString('es-AR', { day: 'numeric', month: 'short' })
                 })));
-                setTopProducts(topRes);
+                setTopProducts(Array.isArray(topRes) ? topRes : []);
             } catch (error) {
                 console.error("Dashboard Error:", error);
                 toast({

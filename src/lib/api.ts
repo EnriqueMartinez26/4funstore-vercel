@@ -374,8 +374,13 @@ export class ApiClient {
   }
 
 
-  static async getUserOrders() {
-    return this.request<Order[]>('/orders/user', { cache: 'no-store' });
+  static async getUserOrders(): Promise<Order[]> {
+    const res = await this.request<any>('/orders/user', { cache: 'no-store' });
+    // Backend devuelve { success, count, orders } — extraemos el array
+    if (Array.isArray(res)) return res;
+    if (Array.isArray(res?.orders)) return res.orders;
+    if (Array.isArray(res?.data)) return res.data;
+    return [];
   }
 
 

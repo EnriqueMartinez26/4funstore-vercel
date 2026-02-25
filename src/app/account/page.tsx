@@ -54,8 +54,10 @@ export default function AccountPage() {
   useEffect(() => {
     if (user) {
       ApiClient.getUserOrders()
-        .then((orders) => {
-          setOrders(orders as any); // Cast temporal para compatibilidad con interfaz local
+        .then((data) => {
+          // Defensivo: aseguramos que siempre sea un array
+          const list = Array.isArray(data) ? data : (data as any)?.orders || [];
+          setOrders(list as Order[]);
         })
         .catch(console.error)
         .finally(() => setLoadingOrders(false));

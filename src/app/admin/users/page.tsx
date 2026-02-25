@@ -76,8 +76,8 @@ export default function UsersPage() {
             });
 
             if (res.success) {
-                setUsers(res.data);
-                setTotalPages(res.totalPages);
+                setUsers(Array.isArray(res.data) ? res.data : []);
+                setTotalPages(res.totalPages || 1);
             }
         } catch (error) {
             console.error(error);

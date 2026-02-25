@@ -91,7 +91,7 @@ export function GameCatalog({ initialGames, initialTotalPages = 1 }: GameCatalog
         if (Array.isArray(response)) {
           setGames(response as any as Game[]);
         } else {
-          setGames(response.products as any as Game[]);
+          setGames(Array.isArray(response.products) ? response.products as any as Game[] : []);
           setTotalPages(response.meta?.totalPages || 1);
         }
       } catch (error) {

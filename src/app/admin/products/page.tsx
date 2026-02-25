@@ -36,8 +36,8 @@ export default function AdminProductsPage() {
         sort: 'order', // Sort by manual order asc
         search: searchQuery
       });
-      setProducts(response.products);
-      setMeta(response.meta);
+      setProducts(Array.isArray(response.products) ? response.products : []);
+      setMeta(response.meta || { total: 0, page: 1, limit: 10, totalPages: 1 });
     } catch (error) {
       console.error(error);
       toast({ variant: "destructive", title: "Error", description: "No se pudieron cargar los productos." });
