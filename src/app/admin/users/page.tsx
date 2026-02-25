@@ -33,7 +33,7 @@ import {
     Trash2,
     Filter
 } from "lucide-react";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
@@ -44,6 +44,7 @@ interface User {
     email: string;
     role: 'user' | 'admin';
     isVerified: boolean;
+    avatar?: string | null;
     createdAt: string;
 }
 
@@ -198,6 +199,9 @@ export default function UsersPage() {
                                     <TableRow key={user._id}>
                                         <TableCell>
                                             <Avatar>
+                                                {user.avatar ? (
+                                                    <AvatarImage src={user.avatar} alt={user.name} />
+                                                ) : null}
                                                 <AvatarFallback className="bg-primary/10 text-primary font-bold">
                                                     {(user.name || 'U').substring(0, 2).toUpperCase()}
                                                 </AvatarFallback>

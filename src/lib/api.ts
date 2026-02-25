@@ -111,6 +111,22 @@ export class ApiClient {
   }
   static async logout() { return this.request('/auth/logout', { method: 'POST', cache: 'no-store' }); }
 
+  static async updateProfile(data: { name?: string; avatar?: string | null; phone?: string | null; address?: string | null }) {
+    return this.request<{ success: boolean; user: User }>('/auth/profile', {
+      method: 'PUT',
+      cache: 'no-store',
+      body: JSON.stringify(data)
+    });
+  }
+
+  static async changePassword(data: { currentPassword: string; newPassword: string }) {
+    return this.request<{ success: boolean; message: string }>('/auth/password', {
+      method: 'PUT',
+      cache: 'no-store',
+      body: JSON.stringify(data)
+    });
+  }
+
 
   static async uploadImage(file: File): Promise<string> {
     const formData = new FormData();

@@ -27,7 +27,7 @@ import {
     SidebarRail,
     SidebarSeparator,
 } from "@/components/ui/sidebar"
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 
 const items = [
@@ -101,6 +101,9 @@ export function AppSidebar() {
                     <SidebarMenuItem>
                         <div className="flex items-center gap-2 p-2 group-data-[collapsible=icon]:hidden">
                             <Avatar className="h-8 w-8">
+                                {user?.avatar ? (
+                                    <AvatarImage src={user.avatar} alt={user.name} />
+                                ) : null}
                                 <AvatarFallback>{user?.name?.[0] || "A"}</AvatarFallback>
                             </Avatar>
                             <div className="grid flex-1 text-left text-sm leading-tight">

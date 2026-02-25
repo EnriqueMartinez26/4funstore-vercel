@@ -46,6 +46,10 @@ export type User = {
   name: string;
   email: string;
   role: 'user' | 'admin';
+  avatar?: string | null;
+  phone?: string | null;
+  address?: string | null;
+  isVerified?: boolean;
   createdAt?: string;
 };
 
@@ -89,7 +93,7 @@ export type ReviewSentiment = 'positive' | 'neutral' | 'negative' | 'mixed';
 
 export interface Review {
   id: string;
-  user: { id: string; name: string };
+  user: { id: string; name: string; avatar?: string | null };
   productId: string;
   rating: number;
   title: string;

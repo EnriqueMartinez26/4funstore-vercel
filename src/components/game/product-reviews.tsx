@@ -11,7 +11,7 @@ import { Progress } from "@/components/ui/progress";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import {
   Select,
   SelectContent,
@@ -450,6 +450,9 @@ function ReviewCard({
       <div className="flex items-start justify-between gap-4">
         <div className="flex items-center gap-3">
           <Avatar className="h-9 w-9 bg-primary/20">
+            {review.user.avatar ? (
+              <AvatarImage src={review.user.avatar} alt={review.user.name} />
+            ) : null}
             <AvatarFallback className="text-xs font-bold text-primary">{initials}</AvatarFallback>
           </Avatar>
           <div>
