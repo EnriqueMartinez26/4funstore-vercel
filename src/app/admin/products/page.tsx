@@ -12,18 +12,20 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, Plus, Pencil, Trash2, ChevronLeft, ChevronRight, Search } from "lucide-react";
-import { formatCurrency } from "@/lib/utils";
-import type { Product } from "@/lib/schemas"; // Import strict Product type
-import type { Meta } from "@/lib/types"; // Import strict Meta type
+import { formatCurrency, getImageUrl } from "@/lib/utils";
+import { useDebounce } from "@/hooks/use-debounce";
+import type { Product } from "@/lib/schemas";
+import type { Meta } from "@/lib/types";
+
 export default function AdminProductsPage() {
   const { loading: authLoading } = useAuth();
   const [products, setProducts] = useState<Product[]>([]);
   const [meta, setMeta] = useState<Meta>({ total: 0, page: 1, limit: 10, totalPages: 1 });
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
+  const debouncedSearch = useDebounce(search);
   const { toast } = useToast();
 
-  // Ref para evitar fetch inicial doble si fuera necesario, pero useEffect maneja el debounce
   const isFirstRun = useRef(true);
 
   const loadProducts = async (page = 1, searchQuery = "") => {
@@ -47,12 +49,10 @@ export default function AdminProductsPage() {
 
   useEffect(() => {
     if (!authLoading) {
-      const timeoutId = setTimeout(() => {
-        loadProducts(1, search);
-      }, 500); // 500ms debounce
-      return () => clearTimeout(timeoutId);
+      loadProducts(1, debouncedSearch);
     }
-  }, [authLoading, search]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [authLoading, debouncedSearch]);
 
   const handlePageChange = (newPage: number) => {
     if (newPage >= 1 && newPage <= meta.totalPages) {
@@ -157,7 +157,7 @@ export default function AdminProductsPage() {
                       <TableCell>
                         <div className="relative h-12 w-12 rounded overflow-hidden bg-muted">
                           <Image
-                            src={(product.imageId && (product.imageId.startsWith('http') || product.imageId.startsWith('/'))) ? product.imageId : 'https://placehold.co/600x400/png?text=4Fun'}
+                            src={getImageUrl(product.imageId)}
                             alt={product.name}
                             fill
                             sizes="48px"

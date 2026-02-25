@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ApiClient } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
+import { useDebounce } from "@/hooks/use-debounce";
 import {
     Table,
     TableBody,
@@ -35,7 +36,6 @@ import {
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-// import { useDebounce } from "@/hooks/use-debounce"; // Eliminado porque usamos lógica manual abajo
 
 // Tipos locales
 interface User {
@@ -63,15 +63,7 @@ export default function UsersPage() {
     // Acciones en progreso
     const [actionLoading, setActionLoading] = useState<string | null>(null);
 
-    // Debounce para búsqueda
-    // (Si no existe el hook, lo simulamos con useEffect)
-    const [debouncedSearch, setDebouncedSearch] = useState(searchTerm);
-    useEffect(() => {
-        const handler = setTimeout(() => {
-            setDebouncedSearch(searchTerm);
-        }, 500);
-        return () => clearTimeout(handler);
-    }, [searchTerm]);
+    const debouncedSearch = useDebounce(searchTerm);
 
     const fetchUsers = async () => {
         setLoading(true);
@@ -102,6 +94,7 @@ export default function UsersPage() {
     // Recargar cuando cambian filtros
     useEffect(() => {
         fetchUsers();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [page, debouncedSearch, roleFilter]);
 
     // Manejo de roles

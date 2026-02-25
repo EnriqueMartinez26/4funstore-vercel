@@ -6,7 +6,7 @@ import Image from "next/image";
 import type { Game } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { formatCurrency, cn } from "@/lib/utils";
+import { formatCurrency, cn, getImageUrl } from "@/lib/utils";
 import { Heart, Eye } from "lucide-react";
 import { useCart } from "@/context/CartContext";
 import { Badge } from "@/components/ui/badge";
@@ -23,10 +23,7 @@ export function GameCard({ game }: GameCardProps) {
   const hasStock = game.stock !== undefined && game.stock > 0;
   const hasDiscount = (game.discountPercentage ?? 0) > 0 && game.finalPrice < game.price;
 
-  // Fallback robusto para la imagen
-  const imageUrl = (game.imageId && (game.imageId.startsWith('http') || game.imageId.startsWith('/')))
-    ? game.imageId
-    : "https://placehold.co/600x400/png?text=4Fun";
+  const imageUrl = getImageUrl(game.imageId);
 
   return (
     <>
