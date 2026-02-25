@@ -177,14 +177,16 @@ export default function UsersPage() {
                         </TableHeader>
                         <TableBody>
                             {loading ? (
-                                <TableRow>
-                                    <TableCell colSpan={6} className="h-24 text-center">
-                                        <div className="flex items-center justify-center gap-2">
-                                            <Loader2 className="h-4 w-4 animate-spin text-primary" />
-                                            <span>Cargando usuarios...</span>
-                                        </div>
-                                    </TableCell>
-                                </TableRow>
+                                Array.from({ length: 5 }).map((_, i) => (
+                                    <TableRow key={i}>
+                                        <TableCell><div className="h-10 w-10 rounded-full bg-muted animate-pulse" /></TableCell>
+                                        <TableCell><div className="space-y-1"><div className="h-4 w-32 bg-muted rounded animate-pulse" /><div className="h-3 w-44 bg-muted rounded animate-pulse" /></div></TableCell>
+                                        <TableCell><div className="h-5 w-16 bg-muted rounded animate-pulse" /></TableCell>
+                                        <TableCell><div className="h-5 w-20 bg-muted rounded animate-pulse" /></TableCell>
+                                        <TableCell><div className="h-4 w-24 bg-muted rounded animate-pulse" /></TableCell>
+                                        <TableCell className="text-right"><div className="h-8 w-8 bg-muted rounded ml-auto animate-pulse" /></TableCell>
+                                    </TableRow>
+                                ))
                             ) : users.length === 0 ? (
                                 <TableRow>
                                     <TableCell colSpan={6} className="h-24 text-center text-muted-foreground">

@@ -4,9 +4,11 @@ import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { formatCurrency } from "@/lib/utils";
 import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis, Tooltip, CartesianGrid } from "recharts";
-import { DollarSign, Package, Users, AlertTriangle, TrendingUp, Loader2 } from "lucide-react";
+import { DollarSign, Package, Users, AlertTriangle, TrendingUp } from "lucide-react";
 import { ApiClient } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
+import { DashboardCardSkeleton } from "@/components/ui/skeletons";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface DashboardStats {
     totalRevenue: number;
@@ -70,9 +72,37 @@ export default function AdminDashboardPage() {
 
     if (loading) {
         return (
-            <div className="h-[50vh] flex items-center justify-center">
-                <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                <span className="ml-2 text-muted-foreground">Cargando métricas...</span>
+            <div className="space-y-6">
+                <div>
+                    <Skeleton className="h-9 w-36 mb-1" />
+                    <Skeleton className="h-4 w-72" />
+                </div>
+                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+                    <DashboardCardSkeleton />
+                    <DashboardCardSkeleton />
+                    <DashboardCardSkeleton />
+                    <DashboardCardSkeleton />
+                </div>
+                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
+                    <div className="col-span-4 rounded-xl border bg-card p-6 space-y-3">
+                        <Skeleton className="h-5 w-48" />
+                        <Skeleton className="h-4 w-36" />
+                        <Skeleton className="h-[350px] w-full" />
+                    </div>
+                    <div className="col-span-3 rounded-xl border bg-card p-6 space-y-3">
+                        <Skeleton className="h-5 w-48" />
+                        <Skeleton className="h-4 w-36" />
+                        {Array.from({ length: 5 }).map((_, i) => (
+                            <div key={i} className="flex items-center justify-between">
+                                <div className="space-y-1">
+                                    <Skeleton className="h-4 w-32" />
+                                    <Skeleton className="h-3 w-24" />
+                                </div>
+                                <Skeleton className="h-4 w-16" />
+                            </div>
+                        ))}
+                    </div>
+                </div>
             </div>
         );
     }
