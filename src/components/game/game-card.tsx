@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { formatCurrency, cn, getImageUrl } from "@/lib/utils";
 import { Heart, Eye } from "lucide-react";
-import { useCart } from "@/context/CartContext";
+import { useWishlist } from "@/context/WishlistContext";
 import { Badge } from "@/components/ui/badge";
 import { QuickViewModal } from "./quick-view-modal";
 
@@ -17,7 +17,7 @@ interface GameCardProps {
 }
 
 export function GameCard({ game }: GameCardProps) {
-  const { toggleWishlist, isInWishlist } = useCart();
+  const { toggleWishlist, isInWishlist } = useWishlist();
   const [showQuickView, setShowQuickView] = useState(false);
   const isWishlisted = isInWishlist(game.id);
   const hasStock = game.stock !== undefined && game.stock > 0;

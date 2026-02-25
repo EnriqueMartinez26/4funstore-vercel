@@ -27,7 +27,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const checkSession = async () => {
       try {
         Logger.debug("[Auth] Verificando sesión con Backend...");
-        const response = await ApiClient.getProfile();
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 5000);
+        const response = await ApiClient.getProfile({ signal: controller.signal });
+        clearTimeout(timeout);
         if (response.success && response.user) {
           setUser(response.user);
         }

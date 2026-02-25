@@ -1,5 +1,5 @@
 import { ProductSchema, type Product, LoginSchema, RegisterSchema, type LoginValues, type RegisterValues, type RegisterPayload } from './schemas';
-import type { PaginatedResponse, User, Order, CartItem, OrderStatus, ApiResponse, Meta } from './types';
+import type { PaginatedResponse, User, Order, CartItem, OrderStatus, ApiResponse, Meta, Review, ReviewStats } from './types';
 import { z } from 'zod';
 import { Logger } from './logger';
 
@@ -54,14 +54,12 @@ export class ApiClient {
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
       ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
-      'ngrok-skip-browser-warning': 'true',
       ...options.headers as any
     };
 
     const response = await fetch(url, {
-      cache: 'no-store',
       ...options,
-      credentials: 'include', // Equivalente a withCredentials: true en Axios. CRUCIAL para envíar cookies.
+      credentials: 'include',
       headers,
     });
 
@@ -77,7 +75,7 @@ export class ApiClient {
       let errorMessage = data.message || data.error;
 
       if (Array.isArray(data.errors)) {
-        errorMessage = data.errors.map((e: any) => e.msg || e.message).join(', ');
+        errorMessage = data.errors.map((e: any) => typeof e === 'string' ? e : (e.msg || e.message)).join(', ');
       } else if (typeof errorMessage === 'object') {
         errorMessage = errorMessage.message || JSON.stringify(errorMessage);
       }
@@ -95,13 +93,13 @@ export class ApiClient {
   }
 
 
-  static async login(data: LoginValues) { return this.request<{ success: boolean; token: string; user: User }>('/auth/login', { method: 'POST', body: JSON.stringify(data) }); }
-  static async register(data: RegisterPayload) { return this.request<{ success: boolean; token: string; user: User }>('/auth/register', { method: 'POST', body: JSON.stringify(data) }); }
+  static async login(data: LoginValues) { return this.request<{ success: boolean; token: string; user: User }>('/auth/login', { method: 'POST', cache: 'no-store', body: JSON.stringify(data) }); }
+  static async register(data: RegisterPayload) { return this.request<{ success: boolean; token: string; user: User }>('/auth/register', { method: 'POST', cache: 'no-store', body: JSON.stringify(data) }); }
   static async verifyEmail(token: string) { return this.request<{ success: boolean; message: string }>(`/auth/verify?token=${token}`); }
 
-  static async getProfile() {
+  static async getProfile(options?: RequestInit) {
     try {
-      return await this.request<{ success: boolean; user: User }>('/auth/profile');
+      return await this.request<{ success: boolean; user: User }>('/auth/profile', { cache: 'no-store', ...options });
     } catch (error: any) {
       // Si no estamos autenticados (401), retornamos success: false limpiamente
       // Esto evita que la app explote si el token expiró.
@@ -111,7 +109,7 @@ export class ApiClient {
       throw error;
     }
   }
-  static async logout() { return this.request('/auth/logout', { method: 'POST' }); }
+  static async logout() { return this.request('/auth/logout', { method: 'POST', cache: 'no-store' }); }
 
 
   static async uploadImage(file: File): Promise<string> {
@@ -265,7 +263,7 @@ export class ApiClient {
   // --- PLATFORMS & GENRES ---
 
   static async getPlatforms() {
-    const res = await this.request<any>('/platforms');
+    const res = await this.request<any>('/platforms', { next: { revalidate: 120 } } as any);
     return res.data || res;
   }
   static async getPlatformById(id: string) { return this.request(`/platforms/${id}`); }
@@ -287,7 +285,7 @@ export class ApiClient {
   }
 
   static async getGenres() {
-    const res = await this.request<any>('/genres');
+    const res = await this.request<any>('/genres', { next: { revalidate: 120 } } as any);
     return res.data || res;
   }
   static async getGenreById(id: string) { return this.request(`/genres/${id}`); }
@@ -312,7 +310,7 @@ export class ApiClient {
   // --- CART ---
 
   static async getCart() {
-    const data = await this.request<any>('/cart');
+    const data = await this.request<any>('/cart', { cache: 'no-store' });
     // Si el backend devuelve items populados, intentamos parsear para asegurar integridad
     if (data.cart?.items) {
       data.cart.items = data.cart.items.map((item: any) => {
@@ -355,7 +353,7 @@ export class ApiClient {
   // --- WISHLIST ---
 
   static async getWishlist(): Promise<Product[]> {
-    const response = await this.request<any>('/wishlist');
+    const response = await this.request<any>('/wishlist', { cache: 'no-store' });
     if (Array.isArray(response.wishlist)) {
       return response.wishlist.map((item: any) => {
         try { return ProductSchema.parse(item); } catch { return null; }
@@ -377,7 +375,7 @@ export class ApiClient {
 
 
   static async getUserOrders() {
-    return this.request<Order[]>('/orders/user');
+    return this.request<Order[]>('/orders/user', { cache: 'no-store' });
   }
 
 
@@ -438,5 +436,40 @@ export class ApiClient {
 
   static async deleteUser(id: string) {
     return this.request(`/users/${id}`, { method: 'DELETE' });
+  }
+
+
+  // --- REVIEWS ---
+
+  static async getProductReviews(productId: string, params?: { page?: number; limit?: number; sort?: string }) {
+    const query = new URLSearchParams();
+    if (params?.page) query.append('page', params.page.toString());
+    if (params?.limit) query.append('limit', params.limit.toString());
+    if (params?.sort) query.append('sort', params.sort);
+    const qs = query.toString() ? `?${query.toString()}` : '';
+    return this.request<{ success: boolean; reviews: Review[]; pagination: Meta }>(`/reviews/product/${productId}${qs}`);
+  }
+
+  static async getProductRatingStats(productId: string) {
+    return this.request<{ success: boolean; data: ReviewStats }>(`/reviews/product/${productId}/stats`);
+  }
+
+  static async createReview(productId: string, data: { rating: number; title?: string; text: string }) {
+    return this.request<{ success: boolean; data: Review }>(`/reviews/product/${productId}`, {
+      method: 'POST',
+      cache: 'no-store',
+      body: JSON.stringify(data)
+    });
+  }
+
+  static async voteReviewHelpful(reviewId: string) {
+    return this.request<{ success: boolean; data: { helpfulCount: number; voted: boolean } }>(`/reviews/${reviewId}/helpful`, {
+      method: 'POST',
+      cache: 'no-store'
+    });
+  }
+
+  static async deleteReview(reviewId: string) {
+    return this.request(`/reviews/${reviewId}`, { method: 'DELETE' });
   }
 }

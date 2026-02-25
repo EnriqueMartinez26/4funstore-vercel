@@ -1,13 +1,13 @@
 "use client";
 
-import { useCart } from "@/context/CartContext";
+import { useWishlist } from "@/context/WishlistContext";
 import { GameCard } from "@/components/game/game-card";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { Heart } from "lucide-react";
 
 export default function WishlistPage() {
-  const { wishlist } = useCart();
+  const { wishlist } = useWishlist();
 
   return (
     <div className="container mx-auto max-w-screen-2xl px-4 py-8 md:py-12">

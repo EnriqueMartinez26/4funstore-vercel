@@ -86,7 +86,7 @@ export function KeyManager({ productId, productName }: KeyManagerProps) {
             <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                     <Key className="h-5 w-5 text-primary" />
-                    Gestón de Licencias Digitales (Keys)
+                    Gestión de Licencias Digitales (Keys)
                 </CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">

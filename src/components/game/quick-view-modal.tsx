@@ -10,6 +10,7 @@ import Image from "next/image";
 import { formatCurrency, cn, getImageUrl } from "@/lib/utils";
 import type { Game } from "@/lib/types";
 import { useCart } from "@/context/CartContext";
+import { useWishlist } from "@/context/WishlistContext";
 import Link from "next/link"; // Add import for Link
 
 interface QuickViewModalProps {
@@ -19,7 +20,8 @@ interface QuickViewModalProps {
 }
 
 export function QuickViewModal({ game, open, onOpenChange }: QuickViewModalProps) {
-    const { addToCart, toggleWishlist, isInWishlist } = useCart();
+    const { addToCart } = useCart();
+    const { toggleWishlist, isInWishlist } = useWishlist();
     const { addToCompare, isInCompare, removeFromCompare } = useComparator();
     const isWishlisted = isInWishlist(game.id);
     const isCompared = isInCompare(game.id);
