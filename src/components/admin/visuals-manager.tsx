@@ -213,14 +213,14 @@ function VisualTable({ items, type, onUpdate }: { items: VisualItem[], type: Vis
                                         onCheckedChange={(c) => handleSelect(item.id, !!c)}
                                     />
                                 </TableCell>
-                                <TableCell>
-                                    <div className="relative h-12 w-20 rounded overflow-hidden bg-muted/50">
+                                <TableCell className="py-2">
+                                    <div className="relative h-16 w-28 rounded overflow-hidden bg-muted/50 flex-shrink-0">
                                         <Image
                                             src={(item.imageId && (item.imageId.startsWith('http') || item.imageId.startsWith('/'))) ? item.imageId : "https://placehold.co/200x120/png?text=No+Img"}
                                             alt={item.name}
                                             fill
-                                            className="object-cover"
-                                            sizes="80px"
+                                            className="object-cover object-center"
+                                            sizes="112px"
                                         />
                                     </div>
                                 </TableCell>
