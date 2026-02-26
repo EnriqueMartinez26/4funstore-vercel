@@ -42,8 +42,18 @@ export default async function Home() {
     <div className="flex flex-col gap-12 md:gap-16">
       <PixelHero />
 
-      <div className="container mx-auto px-4 space-y-12 md:space-y-16">
-        <section>
+      {/* Sección: Explorar por Plataforma */}
+      <section className="relative w-full overflow-hidden bg-background py-12 md:py-16">
+        {/* Fondo Grid */}
+        <div className="absolute inset-0 z-0 opacity-[0.03]"
+          style={{
+            backgroundImage: 'linear-gradient(to right, currentColor 1px, transparent 1px), linear-gradient(to bottom, currentColor 1px, transparent 1px)',
+            backgroundSize: '40px 40px'
+          }}
+        />
+        <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-b from-background via-transparent to-background z-0" />
+
+        <div className="container relative z-10 mx-auto px-4">
           <div className="flex justify-between items-center mb-8">
             <h2 className="font-headline text-3xl font-bold md:text-4xl text-center md:text-left">Explorar por Plataforma</h2>
             <Button variant="outline" asChild className="hidden md:flex">
@@ -67,11 +77,21 @@ export default async function Home() {
               <Link href="/productos">Ver todo</Link>
             </Button>
           </div>
-        </section>
+        </div>
+      </section>
 
-        {/* ELIMINADA: Sección de Recomendaciones IA */}
+      {/* Sección: Explorar por Género */}
+      <section className="relative w-full overflow-hidden bg-background py-12 md:py-16">
+        {/* Fondo Grid */}
+        <div className="absolute inset-0 z-0 opacity-[0.03]"
+          style={{
+            backgroundImage: 'linear-gradient(to right, currentColor 1px, transparent 1px), linear-gradient(to bottom, currentColor 1px, transparent 1px)',
+            backgroundSize: '40px 40px'
+          }}
+        />
+        <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-b from-background via-transparent to-background z-0" />
 
-        <section>
+        <div className="container relative z-10 mx-auto px-4">
           <div className="flex justify-between items-center mb-8">
             <h2 className="font-headline text-3xl font-bold md:text-4xl text-center md:text-left">Explorar por Género</h2>
             <Button variant="outline" asChild className="hidden md:flex">
@@ -95,8 +115,8 @@ export default async function Home() {
               <Link href="/productos">Ver todo</Link>
             </Button>
           </div>
-        </section>
-      </div>
+        </div>
+      </section>
     </div>
   );
 }
