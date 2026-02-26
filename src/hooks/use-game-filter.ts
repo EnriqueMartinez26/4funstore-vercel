@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import type { Game } from '@/lib/types';
 
 interface UseGameFilterProps {
@@ -40,7 +40,7 @@ export function useGameFilter({ games, itemsPerPage = 8 }: UseGameFilterProps) {
   };
 
   // Resetear página cuando cambian los filtros
-  useMemo(() => {
+  useEffect(() => {
     setCurrentPage(1);
   }, [searchQuery, selectedPlatform, selectedGenre, priceRange]);
 

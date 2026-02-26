@@ -80,7 +80,7 @@ export function SearchDialog({
                                     onClick={handleSearch}
                                 >
                                     <Search className="mr-2 h-4 w-4" />
-                                    Buscar "{query}"
+                                    Buscar &quot;{query}&quot;
                                 </Button>
                             </div>
                         )}

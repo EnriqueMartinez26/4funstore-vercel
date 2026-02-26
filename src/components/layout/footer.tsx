@@ -1,5 +1,6 @@
 import { Gamepad2 } from "lucide-react";
 import Link from "next/link";
+import { AboutDialog } from "@/components/about-dialog";
 
 const footerLinks = {
   "Tienda": [
@@ -12,7 +13,7 @@ const footerLinks = {
     { title: "FAQ", href: "/" },
   ],
   "Compañía": [
-    { title: "Sobre Nosotros", href: "/" },
+    { title: "Sobre Nosotros", href: "#about" },
   ],
 };
 
@@ -38,9 +39,17 @@ export function Footer() {
               <ul className="space-y-2">
                 {links.map((link) => (
                   <li key={link.title}>
-                    <Link href={link.href} className="text-sm text-muted-foreground hover:text-foreground transition-colors">
-                      {link.title}
-                    </Link>
+                    {link.href === "#about" ? (
+                      <AboutDialog>
+                        <button className="text-sm text-muted-foreground hover:text-foreground transition-colors text-left cursor-pointer">
+                          {link.title}
+                        </button>
+                      </AboutDialog>
+                    ) : (
+                      <Link href={link.href} className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+                        {link.title}
+                      </Link>
+                    )}
                   </li>
                 ))}
               </ul>

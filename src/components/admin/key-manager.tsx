@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { ApiClient } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -22,7 +22,7 @@ export function KeyManager({ productId, productName }: KeyManagerProps) {
     const [inputKeys, setInputKeys] = useState("");
     const [isSaving, setIsSaving] = useState(false);
 
-    const loadKeys = async () => {
+    const loadKeys = useCallback(async () => {
         setLoading(true);
         try {
             const res = await ApiClient.getKeysByProduct(productId);
@@ -35,13 +35,13 @@ export function KeyManager({ productId, productName }: KeyManagerProps) {
         } finally {
             setLoading(false);
         }
-    };
+    }, [productId, toast]);
 
     useEffect(() => {
         if (productId && productId !== 'new') {
             loadKeys();
         }
-    }, [productId]);
+    }, [productId, loadKeys]);
 
     const handleSave = async () => {
         if (!inputKeys.trim()) return;

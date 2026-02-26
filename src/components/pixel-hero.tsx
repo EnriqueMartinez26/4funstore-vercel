@@ -26,7 +26,7 @@ export const PixelHero = () => {
   useEffect(() => {
     const fetchDiscounted = async () => {
       try {
-        const res = await ApiClient.getProducts({ discounted: true, limit: 10 });
+        const res = await ApiClient.getProducts({ discounted: true });
         const withRealDiscount = res.products.filter(
           (p) => (p.discountPercentage ?? 0) > 0 && p.finalPrice < p.price
         );
@@ -191,7 +191,7 @@ export const PixelHero = () => {
                 disabled={game.stock <= 0}
               >
                 <ShoppingCart className="mr-2 h-5 w-5" />
-                {game.stock > 0 ? `Comprar ${formatCurrency(game.finalPrice)}` : 'Agotado'}
+                {game.stock > 0 ? "Comprar" : "Agotado"}
               </Button>
 
               <Button
