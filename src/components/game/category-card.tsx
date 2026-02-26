@@ -28,7 +28,7 @@ export function CategoryCard({
         className
       )}
     >
-      <div className="relative w-full h-48 sm:h-56 md:h-60 overflow-hidden rounded-xl bg-muted flex items-center justify-center">
+      <div className="relative w-full h-48 sm:h-56 md:h-60 overflow-hidden rounded-xl bg-transparent flex items-center justify-center">
 
         <Image
           src={imageUrl}
