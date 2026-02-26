@@ -38,13 +38,7 @@ export function CategoryCard({
           sizes="(max-width: 768px) 100vw, 25vw"
         />
 
-        <div className="absolute inset-0 bg-black/30 group-hover:bg-black/40 transition-colors duration-300" />
 
-        <div className="absolute bottom-0 left-0 p-5 w-full">
-          <h3 className="text-xl md:text-2xl font-bold text-white font-headline tracking-tight transition-transform duration-300 group-hover:translate-x-1">
-            {title}
-          </h3>
-        </div>
       </div>
     </Link>
   );
