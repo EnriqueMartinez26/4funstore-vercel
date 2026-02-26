@@ -41,7 +41,7 @@ export function GameCard({ game }: GameCardProps) {
               alt={`Portada de ${game.name}`}
               fill
               className={cn(
-                "object-contain transition-transform duration-500 ease-out group-hover:scale-105",
+                "object-cover transition-transform duration-500 ease-out group-hover:scale-105",
                 !hasStock && "grayscale opacity-60"
               )}
               sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
