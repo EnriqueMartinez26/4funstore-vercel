@@ -6,7 +6,7 @@ import { useCart } from "@/context/CartContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { formatCurrency } from "@/lib/utils";
+import { formatCurrency, getImageUrl } from "@/lib/utils";
 
 import { Trash2, ShoppingBag } from "lucide-react";
 
@@ -30,11 +30,7 @@ export default function CartPage() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
           <div className="lg:col-span-2 space-y-4">
             {cart.map((item) => {
-              // Buscar imagen local si existe por ID
-
-              const imageUrl = (item.image && (item.image.startsWith('http') || item.image.startsWith('/')))
-                ? item.image
-                : "https://placehold.co/600x400/png?text=Sin+Imagen";
+              const imageUrl = getImageUrl(item.image, "https://placehold.co/600x400/png?text=Sin+Imagen");
 
               return (
                 <Card key={item.id} className="flex items-center p-4">

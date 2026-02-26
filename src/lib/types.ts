@@ -46,6 +46,10 @@ export type User = {
   name: string;
   email: string;
   role: 'user' | 'admin';
+  avatar?: string | null;
+  phone?: string | null;
+  address?: string | null;
+  isVerified?: boolean;
   createdAt?: string;
 };
 
@@ -82,6 +86,32 @@ export type ApiResponse<T> = {
 };
 
 export type OrderStatus = 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled';
+
+// --- REVIEWS ---
+
+export type ReviewSentiment = 'positive' | 'neutral' | 'negative' | 'mixed';
+
+export interface Review {
+  id: string;
+  user: { id: string; name: string; avatar?: string | null };
+  productId: string;
+  rating: number;
+  title: string;
+  text: string;
+  sentiment: ReviewSentiment | null;
+  sentimentScore: number | null;
+  sentimentKeywords: string[];
+  verified: boolean;
+  helpfulCount: number;
+  createdAt: string;
+}
+
+export interface ReviewStats {
+  averageRating: number;
+  totalReviews: number;
+  distribution: Record<number, number>;
+  sentiment: Record<string, number>;
+}
 
 export interface Order {
   id: string;

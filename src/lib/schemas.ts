@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { FALLBACK_IMAGE } from "./constants";
 
 // Schema para Plataforma (Backend: id, nombre, imageId)
 export const PlatformSchema = z.object({
@@ -107,7 +108,7 @@ export const ProductSchema = z.preprocess((val: any) => {
     // Estructura de imagen unificada
     imageId: data.imageId && (data.imageId.startsWith('http') || data.imageId.startsWith('/'))
       ? data.imageId
-      : "https://placehold.co/600x400/png?text=4Fun",
+      : FALLBACK_IMAGE,
     platform: platformData,
     genre: genreData,
     type: (data.type === 'Fisico' || data.type === 'Physical') ? 'Physical' : 'Digital',
@@ -146,3 +147,21 @@ export const RegisterSchema = z.object({
 export type LoginValues = z.infer<typeof LoginSchema>;
 export type RegisterValues = z.infer<typeof RegisterSchema>;
 export type RegisterPayload = Omit<RegisterValues, 'confirmPassword'>;
+
+// Shared base schema for admin product forms (create & edit)
+export const adminProductBaseSchema = z.object({
+  name: z.string().min(3, "El nombre debe tener al menos 3 caracteres"),
+  description: z.string().min(10, "La descripción debe ser más detallada"),
+  price: z.coerce.number().min(0.01, "El precio debe ser mayor a 0"),
+  stock: z.coerce.number().int().min(0, "El stock no puede ser negativo"),
+  platformId: z.string().min(1, "Selecciona una plataforma"),
+  genreId: z.string().min(1, "Selecciona un género"),
+  type: z.enum(["Digital", "Physical"]),
+  developer: z.string().min(1, "El desarrollador es requerido"),
+  specPreset: z.enum(["Low", "Mid", "High"], {
+    errorMap: () => ({ message: "Selecciona un preset de requisitos" }),
+  }),
+  imageUrl: z.string().url("Debes subir una imagen válida"),
+});
+
+export type AdminProductBaseValues = z.infer<typeof adminProductBaseSchema>;

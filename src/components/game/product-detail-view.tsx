@@ -7,12 +7,14 @@ import Link from "next/link";
 import { useAuth } from "@/hooks/use-auth";
 import type { Game } from "@/lib/types";
 import { useCart } from "@/context/CartContext";
-import { formatCurrency, cn } from "@/lib/utils";
+import { useWishlist } from "@/context/WishlistContext";
+import { formatCurrency, cn, getImageUrl } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { ShoppingCart, Heart, Monitor, Gamepad2, Disc, Globe, Layers, Info } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { ProductReviews } from "@/components/game/product-reviews";
 
 interface ProductDetailViewProps {
     game: Game;
@@ -21,7 +23,8 @@ interface ProductDetailViewProps {
 export function ProductDetailView({ game }: ProductDetailViewProps) {
     const router = useRouter();
     const { user } = useAuth();
-    const { addToCart, toggleWishlist, isInWishlist } = useCart();
+    const { addToCart } = useCart();
+    const { toggleWishlist, isInWishlist } = useWishlist();
     const { toast } = useToast();
 
     // Helper para detectar y formatear URLs de YouTube
@@ -36,10 +39,7 @@ export function ProductDetailView({ game }: ProductDetailViewProps) {
     };
 
     const isWishlisted = isInWishlist(game.id);
-    // Fallback image logic
-    const imageUrl = (game.imageId && (game.imageId.startsWith('http') || game.imageId.startsWith('/')))
-        ? game.imageId
-        : "https://placehold.co/600x800/222/FFF?text=No+Image";
+    const imageUrl = getImageUrl(game.imageId, "https://placehold.co/600x800/222/FFF?text=No+Image");
 
     return (
         <div className="min-h-screen bg-background text-foreground pb-20 relative">
@@ -140,6 +140,9 @@ export function ProductDetailView({ game }: ProductDetailViewProps) {
                                 )}
                             </div>
                         ) : null}
+
+                        {/* Reviews Section */}
+                        <ProductReviews productId={game.id} productName={game.name} />
                     </div>
 
                     {/* --- RIGHT COL: SIDEBAR (Sticky) --- */}
@@ -244,12 +247,3 @@ function MetaRow({ icon, label, value }: { icon: React.ReactNode, label: string,
     );
 }
 
-function SpecRow({ label, value }: { label: string, value?: string }) {
-    if (!value) return null;
-    return (
-        <div className="flex flex-col gap-0.5 py-1">
-            <span className="text-muted-foreground font-medium">{label}</span>
-            <span className="text-foreground/80">{value}</span>
-        </div>
-    );
-}

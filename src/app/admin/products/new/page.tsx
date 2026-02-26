@@ -12,66 +12,39 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, X } from "lucide-react";
 import Image from "next/image";
-
-// Importaciones para formularios y validación
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import * as z from "zod";
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-
-const DEVELOPERS = [
-  'Nintendo', 'Sony Interactive Entertainment', 'Xbox Game Studios', 'Tencent Games', 'Ubisoft', 'Electronic Arts (EA)', 'Take-Two Interactive', 'Activision Blizzard', 'Capcom', 'Bandai Namco Entertainment'
-] as const;
-
-const SPEC_PRESETS = ['Low', 'Mid', 'High'] as const;
-
-// Esquema de Validación
-const productSchema = z.object({
-  name: z.string().min(3, "El nombre debe tener al menos 3 caracteres"),
-  description: z.string().min(10, "La descripción debe ser más detallada"),
-  price: z.coerce.number().min(0.01, "El precio debe ser mayor a 0"),
-  stock: z.coerce.number().int().min(0, "El stock no puede ser negativo"),
-  platformId: z.string().min(1, "Selecciona una plataforma"),
-  genreId: z.string().min(1, "Selecciona un género"),
-  type: z.enum(["Digital", "Physical"]),
-  developer: z.string().min(1, "El desarrollador es requerido"),
-  specPreset: z.enum(SPEC_PRESETS, {
-    errorMap: () => ({ message: "Selecciona un preset de requisitos" })
-  }),
-  imageUrl: z.string().url("Debes subir una imagen válida"),
-});
-
-type ProductFormValues = z.infer<typeof productSchema>;
+import { adminProductBaseSchema, type AdminProductBaseValues } from "@/lib/schemas";
+import { DEVELOPERS, SPEC_PRESETS } from "@/lib/constants";
+import { useImageUpload } from "@/hooks/use-image-upload";
 
 export default function NewProductPage() {
   const router = useRouter();
-  useAuth(); // Verifica autenticación de admin
+  useAuth();
   const { toast } = useToast();
-  const [isUploading, setIsUploading] = useState(false);
   const [isCustomDev, setIsCustomDev] = useState(false);
   const [platforms, setPlatforms] = useState<any[]>([]);
   const [genres, setGenres] = useState<any[]>([]);
 
   useEffect(() => {
-    Promise.all([
-      ApiClient.getPlatforms(),
-      ApiClient.getGenres()
-    ]).then(([pData, gData]) => {
-      setPlatforms(Array.isArray(pData) ? pData : (pData?.data || []));
-      setGenres(Array.isArray(gData) ? gData : (gData?.data || []));
-    }).catch(console.error);
+    Promise.all([ApiClient.getPlatforms(), ApiClient.getGenres()])
+      .then(([pData, gData]) => {
+        setPlatforms(Array.isArray(pData) ? pData : (pData?.data || []));
+        setGenres(Array.isArray(gData) ? gData : (gData?.data || []));
+      })
+      .catch(console.error);
   }, []);
 
-  const form = useForm<ProductFormValues>({
-    resolver: zodResolver(productSchema),
+  const form = useForm<AdminProductBaseValues>({
+    resolver: zodResolver(adminProductBaseSchema),
     defaultValues: {
       name: "",
       description: "",
@@ -86,26 +59,11 @@ export default function NewProductPage() {
     },
   });
 
-  // Función de subida a Cloudinary centralizada
-  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+  const { isUploading, handleImageUpload } = useImageUpload({
+    onSuccess: (url) => form.setValue("imageUrl", url),
+  });
 
-    setIsUploading(true);
-
-    try {
-      const url = await ApiClient.uploadImage(file);
-      form.setValue("imageUrl", url);
-      toast({ title: "Imagen subida correctamente" });
-    } catch (error) {
-      console.error("Upload error:", error);
-      toast({ variant: "destructive", title: "Error al subir imagen" });
-    } finally {
-      setIsUploading(false);
-    }
-  };
-
-  const onSubmit = async (data: ProductFormValues) => {
+  const onSubmit = async (data: AdminProductBaseValues) => {
     try {
       await ApiClient.createProduct(data);
       toast({ title: "Éxito", description: "Producto publicado correctamente." });
@@ -114,17 +72,9 @@ export default function NewProductPage() {
     } catch (error: any) {
       const msg = error.message || "";
       if (msg.includes("400")) {
-        toast({
-          variant: "destructive",
-          title: "Error de validación",
-          description: "Verifica que el desarrollador sea válido"
-        });
+        toast({ variant: "destructive", title: "Error de validación", description: "Verifica que el desarrollador sea válido" });
       } else {
-        toast({
-          variant: "destructive",
-          title: "Error",
-          description: msg || "No se pudo crear el producto."
-        });
+        toast({ variant: "destructive", title: "Error", description: msg || "No se pudo crear el producto." });
       }
     }
   };
@@ -185,27 +135,12 @@ export default function NewProductPage() {
                   {isCustomDev ? (
                     <div className="flex gap-2">
                       <FormControl>
-                        <Input
-                          placeholder="Ej: Behaviour Interactive Inc."
-                          value={field.value}
-                          onChange={field.onChange}
-                          autoFocus
-                        />
+                        <Input placeholder="Ej: Behaviour Interactive Inc." value={field.value} onChange={field.onChange} autoFocus />
                       </FormControl>
-                      <Button type="button" variant="outline" size="sm" className="shrink-0" onClick={() => {
-                        setIsCustomDev(false);
-                        field.onChange(DEVELOPERS[0]);
-                      }}>Cancelar</Button>
+                      <Button type="button" variant="outline" size="sm" className="shrink-0" onClick={() => { setIsCustomDev(false); field.onChange(DEVELOPERS[0]); }}>Cancelar</Button>
                     </div>
                   ) : (
-                    <Select onValueChange={(val) => {
-                      if (val === '__custom__') {
-                        setIsCustomDev(true);
-                        field.onChange('');
-                      } else {
-                        field.onChange(val);
-                      }
-                    }} defaultValue={field.value}>
+                    <Select onValueChange={(val) => { if (val === '__custom__') { setIsCustomDev(true); field.onChange(''); } else { field.onChange(val); } }} defaultValue={field.value}>
                       <FormControl><SelectTrigger><SelectValue placeholder="Seleccionar empresa" /></SelectTrigger></FormControl>
                       <SelectContent>
                         {DEVELOPERS.map((dev) => (<SelectItem key={dev} value={dev}>{dev}</SelectItem>))}

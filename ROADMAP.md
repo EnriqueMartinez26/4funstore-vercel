@@ -10,8 +10,8 @@ Este documento recopila ideas y sugerencias para elevar la calidad del proyecto 
     - Productos con bajo stock (Low Stock Alert).
     - Nuevos usuarios registrados.
     - Gráfico de ingresos últimos 30 días (usando `Recharts`).
-- [ ] **Separación de Contexto:** Mover la gestión de "Visuales" (Plataformas/Géneros) a su propia ruta `/admin/visuals` en lugar de anidarla debajo de Productos.
-- [ ] **Feedback de Carga:** Reemplazar spinners de pantalla completa por **Skeleton Loaders** que imiten la estructura de la tabla, dando sensación de velocidad.
+- [x] **Separación de Contexto:** Mover la gestión de "Visuales" (Plataformas/Géneros) a su propia ruta `/admin/visuals` en lugar de anidarla debajo de Productos.
+- [x] **Feedback de Carga:** Reemplazar spinners de pantalla completa por **Skeleton Loaders** que imiten la estructura de la tabla, dando sensación de velocidad.
 - [ ] **Gestión de Imágenes:** Mejorar la UX de subida de imágenes:
     - Soporte "Drag & Drop".
     - Barra de progreso real visual.

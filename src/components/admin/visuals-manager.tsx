@@ -13,6 +13,8 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
 import { Pencil, Loader2, Trash2, Plus, Search } from "lucide-react";
+import { useImageUpload } from "@/hooks/use-image-upload";
+import { getImageUrl } from "@/lib/utils";
 import type { Platform, Genre } from "@/lib/types";
 import { TableSkeleton } from "@/components/ui/skeletons";
 
@@ -216,7 +218,7 @@ function VisualTable({ items, type, onUpdate }: { items: VisualItem[], type: Vis
                                 <TableCell className="py-2">
                                     <div className="relative h-16 w-28 rounded overflow-hidden bg-muted/50 flex-shrink-0">
                                         <Image
-                                            src={(item.imageId && (item.imageId.startsWith('http') || item.imageId.startsWith('/'))) ? item.imageId : "https://placehold.co/200x120/png?text=No+Img"}
+                                            src={getImageUrl(item.imageId, "https://placehold.co/200x120/png?text=No+Img")}
                                             alt={item.name}
                                             fill
                                             className="object-cover object-center"
@@ -255,8 +257,12 @@ function CreateDialog({ type, onUpdate, label }: { type: VisualType, onUpdate: (
     const [id, setId] = useState("");
     const [name, setName] = useState("");
     const [imageUrl, setImageUrl] = useState("");
-    const [isUploading, setIsUploading] = useState(false);
     const { toast } = useToast();
+
+    const { isUploading, handleImageUpload } = useImageUpload({
+        onSuccess: (url) => setImageUrl(url),
+        successMessage: "Imagen subida",
+    });
 
     useEffect(() => {
         if (open) {
@@ -265,21 +271,6 @@ function CreateDialog({ type, onUpdate, label }: { type: VisualType, onUpdate: (
             setImageUrl("");
         }
     }, [open]);
-
-    const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        if (!file) return;
-        setIsUploading(true);
-        try {
-            const url = await ApiClient.uploadImage(file);
-            setImageUrl(url);
-            toast({ title: "Imagen subida" });
-        } catch {
-            toast({ variant: "destructive", title: "Error al subir imagen" });
-        } finally {
-            setIsUploading(false);
-        }
-    };
 
     const handleCreate = async () => {
         if (!id || !name) {
@@ -355,14 +346,18 @@ function EditDialog({ itemId, type, onUpdate }: { itemId: string, type: VisualTy
     const [newId, setNewId] = useState("");
     const [name, setName] = useState("");
     const [imageUrl, setImageUrl] = useState("");
-    const [isUploading, setIsUploading] = useState(false);
     const { toast } = useToast();
+
+    const { isUploading, handleImageUpload } = useImageUpload({
+        onSuccess: (url) => setImageUrl(url),
+        successMessage: "Imagen subida",
+    });
 
     // Fetch details on open
     useEffect(() => {
         if (open && itemId) {
             setFetching(true);
-            setNewId(""); // Reset newId
+            setNewId("");
             const loadDetails = async () => {
                 try {
                     let data;
@@ -387,21 +382,6 @@ function EditDialog({ itemId, type, onUpdate }: { itemId: string, type: VisualTy
         }
     }, [open, itemId, type]);
 
-    const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        if (!file) return;
-        setIsUploading(true);
-        try {
-            const url = await ApiClient.uploadImage(file);
-            setImageUrl(url);
-            toast({ title: "Imagen subida" });
-        } catch {
-            toast({ variant: "destructive", title: "Error al subir imagen" });
-        } finally {
-            setIsUploading(false);
-        }
-    };
-
     const handleSave = async () => {
         if (!newId || !name) {
             toast({ variant: "destructive", title: "Error", description: "ID y Nombre son obligatorios" });
@@ -418,7 +398,6 @@ function EditDialog({ itemId, type, onUpdate }: { itemId: string, type: VisualTy
 
             toast({ title: "Actualizado correctamente" });
             setOpen(false);
-            onUpdate();
             onUpdate();
         } catch (error: any) {
             const msg = error?.message || "No se pudo guardar";

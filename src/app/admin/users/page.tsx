@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ApiClient } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
+import { useDebounce } from "@/hooks/use-debounce";
 import {
     Table,
     TableBody,
@@ -32,10 +33,9 @@ import {
     Trash2,
     Filter
 } from "lucide-react";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-// import { useDebounce } from "@/hooks/use-debounce"; // Eliminado porque usamos lógica manual abajo
 
 // Tipos locales
 interface User {
@@ -44,6 +44,7 @@ interface User {
     email: string;
     role: 'user' | 'admin';
     isVerified: boolean;
+    avatar?: string | null;
     createdAt: string;
 }
 
@@ -63,15 +64,7 @@ export default function UsersPage() {
     // Acciones en progreso
     const [actionLoading, setActionLoading] = useState<string | null>(null);
 
-    // Debounce para búsqueda
-    // (Si no existe el hook, lo simulamos con useEffect)
-    const [debouncedSearch, setDebouncedSearch] = useState(searchTerm);
-    useEffect(() => {
-        const handler = setTimeout(() => {
-            setDebouncedSearch(searchTerm);
-        }, 500);
-        return () => clearTimeout(handler);
-    }, [searchTerm]);
+    const debouncedSearch = useDebounce(searchTerm);
 
     const fetchUsers = async () => {
         setLoading(true);
@@ -84,8 +77,8 @@ export default function UsersPage() {
             });
 
             if (res.success) {
-                setUsers(res.data);
-                setTotalPages(res.totalPages);
+                setUsers(Array.isArray(res.data) ? res.data : []);
+                setTotalPages(res.totalPages || 1);
             }
         } catch (error) {
             console.error(error);
@@ -102,6 +95,7 @@ export default function UsersPage() {
     // Recargar cuando cambian filtros
     useEffect(() => {
         fetchUsers();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [page, debouncedSearch, roleFilter]);
 
     // Manejo de roles
@@ -184,14 +178,16 @@ export default function UsersPage() {
                         </TableHeader>
                         <TableBody>
                             {loading ? (
-                                <TableRow>
-                                    <TableCell colSpan={6} className="h-24 text-center">
-                                        <div className="flex items-center justify-center gap-2">
-                                            <Loader2 className="h-4 w-4 animate-spin text-primary" />
-                                            <span>Cargando usuarios...</span>
-                                        </div>
-                                    </TableCell>
-                                </TableRow>
+                                Array.from({ length: 5 }).map((_, i) => (
+                                    <TableRow key={i}>
+                                        <TableCell><div className="h-10 w-10 rounded-full bg-muted animate-pulse" /></TableCell>
+                                        <TableCell><div className="space-y-1"><div className="h-4 w-32 bg-muted rounded animate-pulse" /><div className="h-3 w-44 bg-muted rounded animate-pulse" /></div></TableCell>
+                                        <TableCell><div className="h-5 w-16 bg-muted rounded animate-pulse" /></TableCell>
+                                        <TableCell><div className="h-5 w-20 bg-muted rounded animate-pulse" /></TableCell>
+                                        <TableCell><div className="h-4 w-24 bg-muted rounded animate-pulse" /></TableCell>
+                                        <TableCell className="text-right"><div className="h-8 w-8 bg-muted rounded ml-auto animate-pulse" /></TableCell>
+                                    </TableRow>
+                                ))
                             ) : users.length === 0 ? (
                                 <TableRow>
                                     <TableCell colSpan={6} className="h-24 text-center text-muted-foreground">
@@ -203,6 +199,9 @@ export default function UsersPage() {
                                     <TableRow key={user._id}>
                                         <TableCell>
                                             <Avatar>
+                                                {user.avatar ? (
+                                                    <AvatarImage src={user.avatar} alt={user.name} />
+                                                ) : null}
                                                 <AvatarFallback className="bg-primary/10 text-primary font-bold">
                                                     {(user.name || 'U').substring(0, 2).toUpperCase()}
                                                 </AvatarFallback>
