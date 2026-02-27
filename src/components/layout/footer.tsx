@@ -1,6 +1,7 @@
 import { Gamepad2 } from "lucide-react";
 import Link from "next/link";
 import { AboutDialog } from "@/components/about-dialog";
+import { FaqDialog } from "@/components/faq-dialog";
 
 const footerLinks = {
   "Tienda": [
@@ -10,7 +11,7 @@ const footerLinks = {
   ],
   "Soporte": [
     { title: "Contacto", href: "/contacto" },
-    { title: "FAQ", href: "/" },
+    { title: "FAQ", href: "#faq" },
   ],
   "Compañía": [
     { title: "Sobre Nosotros", href: "#about" },
@@ -45,6 +46,12 @@ export function Footer() {
                           {link.title}
                         </button>
                       </AboutDialog>
+                    ) : link.href === "#faq" ? (
+                      <FaqDialog>
+                        <button className="text-sm text-muted-foreground hover:text-foreground transition-colors text-left cursor-pointer">
+                          {link.title}
+                        </button>
+                      </FaqDialog>
                     ) : (
                       <Link href={link.href} className="text-sm text-muted-foreground hover:text-foreground transition-colors">
                         {link.title}

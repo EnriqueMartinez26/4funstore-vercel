@@ -63,11 +63,8 @@ export function GameCatalog({ initialGames, initialTotalPages = 1 }: GameCatalog
     loadFilters();
   }, []);
 
-  // Filter Logic (Frontend for Price, Backend for others)
-  const displayedGames = games.filter(game => {
-    const price = game.price;
-    return price >= priceRange[0] && price <= priceRange[1];
-  });
+  // All filtering is server-side now
+  const displayedGames = games;
 
   // Fetch Logic
   useEffect(() => {
@@ -81,11 +78,13 @@ export function GameCatalog({ initialGames, initialTotalPages = 1 }: GameCatalog
 
         const response = await ApiClient.getProducts({
           page,
-          limit: 12, // Increased limit for grid
+          limit: 12,
           search: searchQuery,
           platform: platformParam,
           genre: genreParam,
-          sort: 'order'
+          sort: 'order',
+          minPrice: priceRange[0] > 0 ? priceRange[0] : undefined,
+          maxPrice: priceRange[1] < 500 ? priceRange[1] : undefined,
         });
 
         if (Array.isArray(response)) {
@@ -110,7 +109,7 @@ export function GameCatalog({ initialGames, initialTotalPages = 1 }: GameCatalog
     }, 300);
 
     return () => clearTimeout(timeoutId);
-  }, [searchQuery, page, selectedPlatforms, selectedGenres]); // Price filtered on client for smooth slider
+  }, [searchQuery, page, selectedPlatforms, selectedGenres, priceRange]);
 
   // Sync State to URL
   useEffect(() => {

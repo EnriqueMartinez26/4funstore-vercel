@@ -162,6 +162,8 @@ export class ApiClient {
     genre?: string;
     sort?: string;
     discounted?: boolean;
+    minPrice?: number;
+    maxPrice?: number;
   }, options?: RequestInit): Promise<PaginatedResponse<Product>> {
     const query = new URLSearchParams();
     if (params?.page) query.append("page", params.page.toString());
@@ -171,6 +173,8 @@ export class ApiClient {
     if (params?.genre && params.genre !== 'all') query.append("genre", params.genre);
     if (params?.sort) query.append("sort", params.sort);
     if (params?.discounted) query.append("discounted", "true");
+    if (params?.minPrice !== undefined && params.minPrice > 0) query.append("minPrice", params.minPrice.toString());
+    if (params?.maxPrice !== undefined) query.append("maxPrice", params.maxPrice.toString());
 
     const queryString = query.toString() ? `?${query.toString()}` : "";
 
@@ -397,6 +401,43 @@ export class ApiClient {
     if (Array.isArray(res?.orders)) return res.orders;
     if (Array.isArray(res?.data)) return res.data;
     return [];
+  }
+
+  // Admin: listar todas las órdenes con paginación y filtros
+  static async getAllOrders(params?: {
+    page?: number;
+    limit?: number;
+    status?: string;
+  }): Promise<{ orders: Order[]; total: number; page: number; totalPages: number }> {
+    const query = new URLSearchParams();
+    if (params?.page) query.append("page", params.page.toString());
+    if (params?.limit) query.append("limit", params.limit.toString());
+    if (params?.status && params.status !== "all") query.append("status", params.status);
+    const qs = query.toString() ? `?${query.toString()}` : "";
+    const res = await this.request<any>(`/orders${qs}`, { cache: 'no-store' });
+    return {
+      orders: res.orders || [],
+      total: res.total || 0,
+      page: res.page || 1,
+      totalPages: res.totalPages || 1,
+    };
+  }
+
+  // Admin: actualizar estado de una orden
+  static async updateOrderStatus(orderId: string, status: string): Promise<Order> {
+    const res = await this.request<any>(`/orders/${orderId}/status`, {
+      method: 'PATCH',
+      body: JSON.stringify({ status }),
+    });
+    return res.order || res;
+  }
+
+  // Admin: marcar orden como pagada
+  static async markOrderAsPaid(orderId: string): Promise<Order> {
+    const res = await this.request<any>(`/orders/${orderId}/pay`, {
+      method: 'PUT',
+    });
+    return res.order || res;
   }
 
 
