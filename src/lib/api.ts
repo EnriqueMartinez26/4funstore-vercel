@@ -343,7 +343,7 @@ export class ApiClient {
           }
         }
         return {
-          ...item, id: item._id, productId: item.product?._id,
+          ...item, id: item._id, productId: parsedProduct?.id || item.product?.id || item.product?._id,
           name: parsedProduct?.name || item.name || "Unknown Product",
           price: parsedProduct?.price ?? item.price ?? 0,
           image: parsedProduct?.imageId || item.image
