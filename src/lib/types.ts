@@ -10,35 +10,11 @@ export type Platform = ReferenceEntity;
 export type Genre = ReferenceEntity;
 export type Category = ReferenceEntity;
 
-// Coincide 1:1 con el toResponseDTO del Backend
-export type Game = {
-  id: string;
-  name: string;
-  description: string;
-  price: number;
-  platform: Platform; // Objeto completo
-  genre: Genre;       // Objeto completo
-  type: 'Digital' | 'Physical';
-  releaseDate: string;
-  developer: string;
-  imageId: string;    // Mapeado desde imagenUrl
-  rating: number;
-  stock: number;
-  active?: boolean;
-  trailerUrl?: string; // URL del video/trailer
-  specPreset?: 'Low' | 'Mid' | 'High'; // Preset de requisitos de PC
-  requirements?: {
-    os: string;
-    processor: string;
-    memory: string;
-    graphics: string;
-    storage: string;
-  };
-  // Discount Fields
-  finalPrice: number;
-  discountPercentage?: number;
-  discountEndDate?: string | null;
-};
+// Re-exportamos Product de schemas como Game para compatibilidad.
+// Game y Product son la MISMA entidad. Usar Product para código nuevo.
+import type { Product } from './schemas';
+export type Game = Product;
+export type { Product } from './schemas';
 
 // Unificamos User (eliminamos duplicidad de 'Usuario')
 export type User = {
@@ -61,6 +37,7 @@ export type CartItem = {
   quantity: number;
   image?: string;
   platformName?: string;
+  platform?: { name: string };
 };
 
 // Metadata de Paginación

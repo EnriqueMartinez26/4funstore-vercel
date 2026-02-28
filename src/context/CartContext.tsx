@@ -3,11 +3,7 @@ import { createContext, useContext, useEffect, useState, useCallback } from 'rea
 import { ApiClient } from '@/lib/api';
 import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '@/hooks/use-toast';
-
-export interface CartItem {
-  id: string; productId: string; name: string; price: number; quantity: number; image?: string;
-  platform?: { name: string };
-}
+import type { CartItem } from '@/lib/types';
 
 interface CartContextType {
   cart: CartItem[]; addToCart: (product: any, quantity?: number) => Promise<void>;
