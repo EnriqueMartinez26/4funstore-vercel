@@ -56,13 +56,11 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     };
 
     if (user) {
-      setCart(prev => [...prev, newItem]);
       try {
         await ApiClient.addToCart(product.id, quantity);
-        await fetchCart();
+        await fetchCart(); // Reemplaza todo usando Source of Truth
         toast({ title: "Agregado al carrito", description: `${product.name} añadido.` });
       } catch (e: any) {
-        setCart(prev => prev.filter(i => i.id !== newItem.id));
         const errorMessage = e?.message || "No se pudo agregar al carrito.";
         toast({ variant: "destructive", title: "Error", description: errorMessage });
       }
