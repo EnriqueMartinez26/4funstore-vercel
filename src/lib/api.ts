@@ -72,12 +72,23 @@ export class ApiClient {
 
     if (!response.ok) {
       // Normalizamos el mensaje de error para evitar que sea un Objeto y rompa React
-      let errorMessage = data.message || data.error;
+      let errorMessage: string | undefined;
 
-      if (Array.isArray(data.errors)) {
+      // Estructura del backend: { error: { message, details } }
+      if (data.error && typeof data.error === 'object') {
+        errorMessage = data.error.message;
+        // Si hay detalles de validación, usarlos
+        if (Array.isArray(data.error.details) && data.error.details.length > 0) {
+          errorMessage = data.error.details.join('. ');
+        }
+      } else if (typeof data.error === 'string') {
+        errorMessage = data.error;
+      }
+
+      // Fallback: data.message o data.errors (express-validator)
+      if (!errorMessage) errorMessage = data.message;
+      if (!errorMessage && Array.isArray(data.errors)) {
         errorMessage = data.errors.map((e: any) => typeof e === 'string' ? e : (e.msg || e.message)).join(', ');
-      } else if (typeof errorMessage === 'object') {
-        errorMessage = errorMessage.message || JSON.stringify(errorMessage);
       }
 
       errorMessage = errorMessage || `Error API: ${response.statusText}`;
