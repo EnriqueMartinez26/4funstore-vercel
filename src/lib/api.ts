@@ -129,11 +129,14 @@ export class ApiClient {
 
 
   static async uploadImage(file: File): Promise<string> {
+    const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME || 'dxlbwdqop';
+    const uploadPreset = process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET || '4fun_preset';
+
     const formData = new FormData();
     formData.append("file", file);
-    formData.append("upload_preset", "4fun_preset");
+    formData.append("upload_preset", uploadPreset);
 
-    const res = await fetch(`https://api.cloudinary.com/v1_1/dxlbwdqop/image/upload`, {
+    const res = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, {
       method: "POST",
       body: formData
     });
