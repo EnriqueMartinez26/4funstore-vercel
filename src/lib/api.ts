@@ -11,7 +11,11 @@ const getBaseUrl = () => {
   if (typeof window !== 'undefined') {
     return '';
   }
-  return process.env.NEXT_PUBLIC_API_URL || 'http://localhost:9003';
+  let baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:9003';
+  if (baseUrl && !baseUrl.startsWith('http://') && !baseUrl.startsWith('https://')) {
+    baseUrl = `https://${baseUrl}`;
+  }
+  return baseUrl;
 };
 
 export class ApiError extends Error {
