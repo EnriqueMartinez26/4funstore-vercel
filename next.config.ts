@@ -25,7 +25,13 @@ const nextConfig: NextConfig = {
   // El client-side usa getBaseUrl() → '' (ruta relativa) para que las requests
   // pasen por el proxy de Next.js y puedan enviar cookies.
   async rewrites() {
-    const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:9003';
+    let backendUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:9003';
+    // Si la URL que viene de Vercel no arranca con http, se lo agregamos a la fuerza
+    // para que la validación del build no falle.
+    if (!backendUrl.startsWith('http://') && !backendUrl.startsWith('https://')) {
+      backendUrl = `https://${backendUrl}`;
+    }
+
     return [
       {
         source: '/api/:path*',
