@@ -1,5 +1,5 @@
 import { ProductSchema, type Product, LoginSchema, RegisterSchema, type LoginValues, type RegisterValues, type RegisterPayload } from './schemas';
-import type { PaginatedResponse, User, Order, CartItem, OrderStatus, ApiResponse, Meta, Review, ReviewStats } from './types';
+import type { PaginatedResponse, User, Order, CartItem, OrderStatus, ApiResponse, Meta, Review, ReviewStats, ProductInput } from './types';
 import { z } from 'zod';
 import { Logger } from './logger';
 
@@ -23,23 +23,6 @@ export class ApiError extends Error {
     super(message);
     this.name = 'ApiError';
   }
-}
-
-// TODO: Mover esto a un archivo de tipos si crece mucho - por ahora zfamos.
-interface ProductInput {
-  name: string;
-  description: string;
-  price: number | string;
-  platformId: string;
-  genreId: string;
-  type: string;
-  developer: string;
-  imageUrl?: string;
-  trailerUrl?: string;
-  stock: number | string;
-  specPreset?: string;
-  discountPercentage?: number | string;
-  discountEndDate?: string | null;
 }
 
 export class ApiClient {

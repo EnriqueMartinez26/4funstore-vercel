@@ -16,6 +16,22 @@ import type { Product } from './schemas';
 export type Game = Product;
 export type { Product } from './schemas';
 
+export interface ProductInput {
+  name: string;
+  description: string;
+  price: number | string;
+  platformId: string;
+  genreId: string;
+  type: string;
+  developer: string;
+  imageUrl?: string;
+  trailerUrl?: string;
+  stock: number | string;
+  specPreset?: string;
+  discountPercentage?: number | string;
+  discountEndDate?: string | null;
+}
+
 // Unificamos User (eliminamos duplicidad de 'Usuario')
 export type User = {
   id: string;
