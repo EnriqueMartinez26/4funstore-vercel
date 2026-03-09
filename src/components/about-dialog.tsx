@@ -1,7 +1,8 @@
 "use client";
 
+import Image from "next/image";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Gamepad2, Heart, Code, ShieldCheck } from "lucide-react";
+import { Heart, Code, ShieldCheck } from "lucide-react";
 import React from "react";
 
 export function AboutDialog({ children }: { children: React.ReactNode }) {
@@ -12,9 +13,9 @@ export function AboutDialog({ children }: { children: React.ReactNode }) {
             </DialogTrigger>
             <DialogContent className="sm:max-w-[600px] overflow-hidden">
                 <DialogHeader className="mb-4">
-                    <div className="flex items-center gap-2 text-primary mb-2">
-                        <Gamepad2 className="h-6 w-6" />
-                        <DialogTitle className="text-2xl font-headline">Sobre Nosotros</DialogTitle>
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 mb-2">
+                        <Image src="/logo.png" alt="4Fun Logo" width={80} height={40} className="h-10 w-auto object-contain" />
+                        <DialogTitle className="text-2xl font-headline mt-1 sm:mt-0">Sobre Nosotros</DialogTitle>
                     </div>
                     <DialogDescription className="text-base text-muted-foreground">
                         Conocé más sobre la historia y la misión detrás de 4Fun Marketplace.
