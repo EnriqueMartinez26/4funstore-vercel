@@ -25,7 +25,7 @@ export function Footer() {
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-8">
           <div className="col-span-2 lg:col-span-1">
             <Link href="/" className="inline-flex items-center mb-4">
-              <Image src="/logo.png" alt="4Fun Logo" width={110} height={110} className="h-[110px] w-[110px] object-contain" />
+              <Image src="/logo.png" alt="4Fun Logo" width={110} height={110} className="h-20 w-20 md:h-[110px] md:w-[110px] object-contain" />
             </Link>
             <p className="text-sm text-muted-foreground">
               Tu tienda única para videojuegos digitales y físicos.

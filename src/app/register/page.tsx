@@ -81,18 +81,18 @@ export default function RegisterPage() {
 
   if (authLoading) {
     return (
-      <div className="min-h-[calc(100vh-5rem)] flex items-center justify-center">
+      <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
   }
 
   return (
-    <div className="container mx-auto flex items-center justify-center min-h-[calc(100vh-5rem)] py-8 px-4">
+    <div className="container mx-auto flex items-center justify-center min-h-[calc(100vh-4rem)] py-8 px-4">
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1">
           <div className="flex justify-center mb-3">
-            <Image src="/logo.png" alt="4Fun Logo" width={160} height={160} className="h-[160px] w-[160px] object-contain" />
+            <Image src="/logo.png" alt="4Fun Logo" width={160} height={160} className="h-28 w-28 md:h-[160px] md:w-[160px] object-contain" />
           </div>
           <CardTitle className="text-2xl font-bold font-headline text-center">
             Crear Cuenta
