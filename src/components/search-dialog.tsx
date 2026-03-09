@@ -170,7 +170,7 @@ export function SearchDialog({
                                     <button
                                         key={product.id}
                                         className="flex items-center gap-3 w-full rounded-md px-2 py-2 text-left hover:bg-accent transition-colors cursor-pointer"
-                                        onClick={() => navigateTo(`/producto/${product.id}`)}
+                                        onClick={() => navigateTo(`/productos/${product.id}`)}
                                     >
                                         <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-md bg-muted">
                                             <Image
