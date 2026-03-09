@@ -91,9 +91,7 @@ function LoginForm() {
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1">
           <div className="flex justify-center mb-3">
-            <span className="inline-flex items-center bg-white rounded-xl px-3 py-2 shadow-md">
-              <Image src="/logo.png" alt="4Fun Logo" width={130} height={52} className="h-12 w-auto object-contain" />
-            </span>
+            <Image src="/logo.png" alt="4Fun Logo" width={200} height={80} className="h-24 w-auto object-contain" />
           </div>
           <CardTitle className="text-2xl font-bold font-headline text-center">
             Bienvenido de nuevo
