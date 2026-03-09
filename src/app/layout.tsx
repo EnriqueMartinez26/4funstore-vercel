@@ -9,6 +9,10 @@ import { AppProviders } from './providers';
 export const metadata: Metadata = {
   title: '4Fun | Tu destino gamer',
   description: 'La mejor tienda de videojuegos digitales y físicos. Ofertas increíbles, entrega inmediata y soporte premium.',
+  icons: {
+    icon: '/logo.png',
+    apple: '/logo.png',
+  },
 };
 
 import { Inter, Space_Grotesk } from 'next/font/google';
