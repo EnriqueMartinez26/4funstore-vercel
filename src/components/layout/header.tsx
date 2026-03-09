@@ -30,9 +30,9 @@ export function Header() {
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container mx-auto flex h-16 max-w-screen-2xl items-center px-4">
+      <div className="container mx-auto flex h-20 max-w-screen-2xl items-center px-4">
         <Link href="/" className="flex items-center mr-6">
-          <Image src="/logo.png" alt="4Fun Logo" width={160} height={64} className="h-12 w-auto object-contain" priority />
+          <Image src="/logo.png" alt="4Fun Logo" width={72} height={72} className="h-[72px] w-[72px] object-contain" priority />
         </Link>
 
         <nav className="hidden md:flex items-center space-x-6 text-sm font-medium flex-1">
