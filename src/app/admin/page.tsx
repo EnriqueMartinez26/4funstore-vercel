@@ -26,7 +26,7 @@ interface ChartItem {
 }
 
 interface TopProduct {
-    _id: string;
+    id: string;
     name: string;
     totalSold: number;
     revenueGenerated: number;
@@ -228,7 +228,7 @@ export default function AdminDashboardPage() {
                         <div className="space-y-8">
                             {topProducts.length > 0 ? (
                                 topProducts.map((product) => (
-                                    <div key={product._id} className="flex items-center">
+                                    <div key={product.id} className="flex items-center">
                                         <div className="space-y-1 overflow-hidden">
                                             <p className="text-sm font-medium leading-none truncate pr-4" title={product.name}>
                                                 {product.name}

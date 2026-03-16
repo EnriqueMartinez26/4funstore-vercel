@@ -75,7 +75,7 @@ export function KeyManager({ productId, productName }: KeyManagerProps) {
         try {
             await ApiClient.deleteKey(id);
             toast({ title: "Key eliminada" });
-            setKeys(keys.filter(k => k._id !== id));
+            setKeys(keys.filter(k => k.id !== id));
         } catch (error) {
             toast({ variant: "destructive", title: "Error al borrar" });
         }
@@ -134,7 +134,7 @@ export function KeyManager({ productId, productName }: KeyManagerProps) {
                                 </TableRow>
                             ) : (
                                 keys.map((k) => (
-                                    <TableRow key={k._id}>
+                                    <TableRow key={k.id}>
                                         <TableCell className="font-mono text-xs md:text-sm">{k.clave}</TableCell>
                                         <TableCell>
                                             <Badge variant={k.estado === 'DISPONIBLE' ? 'default' : k.estado === 'VENDIDA' ? 'destructive' : 'secondary'}>
@@ -142,7 +142,7 @@ export function KeyManager({ productId, productName }: KeyManagerProps) {
                                             </Badge>
                                         </TableCell>
                                         <TableCell className="text-right">
-                                            <Button variant="ghost" size="icon" onClick={() => handleDelete(k._id, k.clave)} disabled={k.estado === 'VENDIDA'}>
+                                            <Button variant="ghost" size="icon" onClick={() => handleDelete(k.id, k.clave)} disabled={k.estado === 'VENDIDA"}>
                                                 <Trash2 className="h-4 w-4 text-muted-foreground hover:text-red-500" />
                                             </Button>
                                         </TableCell>

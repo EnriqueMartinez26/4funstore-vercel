@@ -44,13 +44,13 @@ import Link from "next/link";
 import { formatCurrency } from "@/lib/utils";
 
 interface DigitalKey {
-  _id: string;
+  id: string;
   productoId: string;
   clave: string;
 }
 
 interface Order {
-  _id: string;
+  id: string;
   createdAt: string;
   totalPrice: number;
   orderStatus: string;
@@ -292,12 +292,12 @@ export default function AccountPage() {
             </Card>
           ) : (
             orders.map((order) => (
-              <Card key={order._id} className="overflow-hidden border-l-4 border-l-primary/50">
+              <Card key={order.id} className="overflow-hidden border-l-4 border-l-primary/50">
                 <CardHeader className="bg-muted/30 pb-4">
                   <div className="flex justify-between items-start">
                     <div>
                       <CardTitle className="text-lg flex items-center gap-2">
-                        Orden #{order._id.slice(-6)}
+                        Orden #{order.id.slice(-6)}
                         <Badge variant={order.isPaid ? "default" : "secondary"}>
                           {order.isPaid ? "Pagado" : "Pendiente"}
                         </Badge>
@@ -321,7 +321,7 @@ export default function AccountPage() {
                         {order.isPaid && Array.isArray(order.digitalKeys) && (
                           <div className="flex flex-col items-end gap-1">
                             {order.digitalKeys
-                              .filter((k) => k.productoId === item.product || k.productoId === item.product?._id)
+                              .filter((k) => k.productoId === item.product || k.productoId === item.product?.id)
                               .map((k, kIdx) => (
                                 <div key={kIdx} className="flex items-center gap-2 bg-green-500/10 text-green-600 dark:text-green-400 px-3 py-1 rounded-md text-xs font-mono border border-green-500/20">
                                   <Key className="h-3 w-3" />

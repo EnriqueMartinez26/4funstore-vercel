@@ -335,11 +335,11 @@ export class ApiClient {
           try {
             parsedProduct = ProductSchema.parse(item.product);
           } catch (e) {
-            Logger.error(`[ApiClient] Explotó el parseo del producto en cart item ${item._id}:`, e);
+            Logger.error(`[ApiClient] Explotó el parseo del producto en cart item ${item.id}:`, e);
           }
         }
         return {
-          ...item, id: item._id, productId: item.product?._id,
+          ...item, id: item.id, productId: item.product?.id,
           name: parsedProduct?.name || item.name || "Unknown Product",
           price: parsedProduct?.price ?? item.price ?? 0,
           image: parsedProduct?.imageId || item.image

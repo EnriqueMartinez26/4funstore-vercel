@@ -18,7 +18,7 @@ export const GenreSchema = z.object({
 // Schema para Producto (Mapeando respuesta del Backend)
 export const ProductSchema = z.preprocess((val: any) => {
   if (typeof val === 'object' && val !== null) {
-    // Map _id to id if id is missing
+    // Map id field (Supabase uses id, not _id)
     if (!val.id && val._id) {
       val.id = val._id;
     }
