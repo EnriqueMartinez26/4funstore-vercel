@@ -20,23 +20,34 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // Verificar sesión al cargar (cookie HttpOnly) y cargar token desde localStorage
   useEffect(() => {
-    // No need to cargar token desde localStorage; la sesión se maneja con cookie HttpOnly
-    // Si el backend envía una cookie, el navegador la enviará automáticamente
-
     const checkSession = async () => {
+      // Sin token no hay sesión: evita hacer un request al backend que siempre va a devolver 401
+      const token = localStorage.getItem('token');
+      if (!token) {
+        setLoading(false);
+        return;
+      }
+
       try {
         Logger.debug("[Auth] Verificando sesión con Backend...");
         const controller = new AbortController();
         const timeout = setTimeout(() => controller.abort(), 5000);
         const response = await ApiClient.getProfile({ signal: controller.signal });
         clearTimeout(timeout);
+
         if (response.success && response.user) {
           setUser(response.user);
+        } else {
+          // Token inválido: limpiarlo para no hacer requests muertos en el futuro
+          localStorage.removeItem('token');
+          setUser(null);
         }
-      } catch (error) {
-        // Si falla, es que no hay cookie válida o expiró
+      } catch (error: any) {
+        if (error?.status === 401) {
+          // Token expirado → limpiar silenciosamente sin redirigir (el usuario está en home)
+          localStorage.removeItem('token');
+        }
         setUser(null);
       } finally {
         setLoading(false);
@@ -52,13 +63,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       Logger.debug('[Auth] Login response:', response);
       if (response.success) {
         setUser(response.user);
-        // Guardar token en localStorage como fallback (el proxy de Next.js no propaga cookies)
+        // Persiste el token: api.ts lo lee en cada request para inyectar Authorization: Bearer
         if (response.token) {
           localStorage.setItem('token', response.token);
         }
         return { success: true };
-
-
       }
       return { success: false, message: 'Credenciales inválidas' };
     } catch (error: any) {
@@ -71,7 +80,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const response = await ApiClient.register({ name, email, password });
       if (response.success) {
         setUser(response.user);
-        // Guardar token en localStorage como fallback
         if (response.token) {
           localStorage.setItem('token', response.token);
         }
@@ -90,12 +98,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       console.error(error);
     } finally {
       setUser(null);
-      // Limpiar token y datos locales
-      if (typeof window !== 'undefined') {
-        localStorage.removeItem('token');
-        localStorage.removeItem('cart');
-      }
-      // Redirigir o refrescar para limpiar estado completo
+      localStorage.removeItem('token');
+      localStorage.removeItem('cart');
       window.location.href = '/';
     }
   };
@@ -105,8 +109,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const response = await ApiClient.getProfile();
       if (response.success && response.user) {
         setUser(response.user);
+      } else {
+        // getProfile devolvió success: false sin lanzar → token inválido
+        localStorage.removeItem('token');
+        setUser(null);
       }
-    } catch (error) {
+    } catch (error: any) {
+      if (error?.status === 401) {
+        localStorage.removeItem('token');
+        setUser(null);
+      }
       console.error('[Auth] Error refreshing user:', error);
     }
   };
