@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import Image from "next/image";
 import { ApiClient } from "@/lib/api";
 import { Button } from "@/components/ui/button";
@@ -29,7 +29,7 @@ export function VisualsManager() {
     const [activeTab, setActiveTab] = useState<VisualType>("platform");
     const { toast } = useToast();
 
-    const fetchData = async () => {
+    const fetchData = useCallback(async () => {
         setLoading(true);
         try {
             const [pData, gData] = await Promise.all([
@@ -47,11 +47,11 @@ export function VisualsManager() {
         } finally {
             setLoading(false);
         }
-    };
+    }, [toast]);
 
     useEffect(() => {
         fetchData();
-    }, []);
+    }, [fetchData]);
 
     const handleUpdate = () => {
         fetchData();
@@ -380,7 +380,7 @@ function EditDialog({ itemId, type, onUpdate }: { itemId: string, type: VisualTy
             };
             loadDetails();
         }
-    }, [open, itemId, type]);
+    }, [open, itemId, type, toast]);
 
     const handleSave = async () => {
         if (!newId || !name) {

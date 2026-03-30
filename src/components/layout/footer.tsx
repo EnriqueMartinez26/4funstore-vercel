@@ -1,5 +1,7 @@
-import { Gamepad2 } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
+import { AboutDialog } from "@/components/about-dialog";
+import { FaqDialog } from "@/components/faq-dialog";
 
 const footerLinks = {
   "Tienda": [
@@ -9,10 +11,10 @@ const footerLinks = {
   ],
   "Soporte": [
     { title: "Contacto", href: "/contacto" },
-    { title: "FAQ", href: "/" },
+    { title: "FAQ", href: "#faq" },
   ],
   "Compañía": [
-    { title: "Sobre Nosotros", href: "/" },
+    { title: "Sobre Nosotros", href: "#about" },
   ],
 };
 
@@ -22,11 +24,8 @@ export function Footer() {
       <div className="container mx-auto max-w-screen-2xl px-4 py-8 lg:py-12">
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-8">
           <div className="col-span-2 lg:col-span-1">
-            <Link href="/" className="flex items-center space-x-2 mb-4">
-              <Gamepad2 className="h-8 w-8 text-primary" />
-              <span className="font-bold text-xl font-headline">
-                4Fun
-              </span>
+            <Link href="/" className="inline-flex items-center mb-4">
+              <Image src="/logo.png" alt="4Fun Logo" width={110} height={110} className="h-20 w-20 md:h-[110px] md:w-[110px] object-contain" />
             </Link>
             <p className="text-sm text-muted-foreground">
               Tu tienda única para videojuegos digitales y físicos.
@@ -38,9 +37,23 @@ export function Footer() {
               <ul className="space-y-2">
                 {links.map((link) => (
                   <li key={link.title}>
-                    <Link href={link.href} className="text-sm text-muted-foreground hover:text-foreground transition-colors">
-                      {link.title}
-                    </Link>
+                    {link.href === "#about" ? (
+                      <AboutDialog>
+                        <button className="text-sm text-muted-foreground hover:text-foreground transition-colors text-left cursor-pointer">
+                          {link.title}
+                        </button>
+                      </AboutDialog>
+                    ) : link.href === "#faq" ? (
+                      <FaqDialog>
+                        <button className="text-sm text-muted-foreground hover:text-foreground transition-colors text-left cursor-pointer">
+                          {link.title}
+                        </button>
+                      </FaqDialog>
+                    ) : (
+                      <Link href={link.href} className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+                        {link.title}
+                      </Link>
+                    )}
                   </li>
                 ))}
               </ul>

@@ -9,7 +9,6 @@ import { ShoppingCart, Zap, ArrowRight, ChevronLeft, ChevronRight, Percent } fro
 import { useCart } from '@/context/CartContext';
 import { formatCurrency } from '@/lib/utils';
 import { cn } from '@/lib/utils';
-import type { Game } from '@/lib/types';
 import type { Product } from '@/lib/schemas';
 import { ApiClient } from '@/lib/api';
 import Link from 'next/link';
@@ -26,7 +25,7 @@ export const PixelHero = () => {
   useEffect(() => {
     const fetchDiscounted = async () => {
       try {
-        const res = await ApiClient.getProducts({ discounted: true, limit: 10 });
+        const res = await ApiClient.getProducts({ discounted: true });
         const withRealDiscount = res.products.filter(
           (p) => (p.discountPercentage ?? 0) > 0 && p.finalPrice < p.price
         );
@@ -95,23 +94,7 @@ export const PixelHero = () => {
   const imageUrl = (game.imageId && (game.imageId.startsWith('http') || game.imageId.startsWith('/')))
     ? game.imageId : DEFAULT_IMAGE;
 
-  const gameObj: Game = {
-    id: game.id,
-    name: game.name,
-    description: game.description,
-    price: game.price,
-    finalPrice: game.finalPrice,
-    platform: game.platform,
-    genre: game.genre,
-    type: game.type as 'Digital' | 'Physical',
-    releaseDate: game.releaseDate,
-    developer: game.developer,
-    imageId: game.imageId,
-    rating: game.rating,
-    stock: game.stock,
-    discountPercentage: game.discountPercentage,
-    discountEndDate: game.discountEndDate,
-  };
+  // `game` ya es de tipo Product (= Game), se puede pasar directamente a addToCart
 
   const hasDiscount = (game.discountPercentage ?? 0) > 0 && game.finalPrice < game.price;
 
@@ -187,11 +170,11 @@ export const PixelHero = () => {
               <Button
                 size="lg"
                 className="bg-primary hover:bg-primary/90 text-primary-foreground font-headline text-lg h-11 px-6 shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all duration-300"
-                onClick={() => addToCart(gameObj)}
+                onClick={() => addToCart(game)}
                 disabled={game.stock <= 0}
               >
                 <ShoppingCart className="mr-2 h-5 w-5" />
-                {game.stock > 0 ? `Comprar ${formatCurrency(game.finalPrice)}` : 'Agotado'}
+                {game.stock > 0 ? "Comprar" : "Agotado"}
               </Button>
 
               <Button

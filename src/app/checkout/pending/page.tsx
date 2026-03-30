@@ -13,7 +13,7 @@ export default function PendingPage() {
   useEffect(() => {
     // Limpiamos el carrito porque la orden ya fue generada, aunque esté pendiente
     clearCart();
-  }, []);
+  }, [clearCart]);
 
   return (
     <div className="container flex items-center justify-center min-h-[80vh] px-4">
@@ -33,7 +33,7 @@ export default function PendingPage() {
           <p className="text-sm">
             Si pagaste en efectivo, recuerda que la acreditación puede demorar hasta 48hs.
           </p>
-          
+
           <div className="flex flex-col gap-3 pt-4">
             <Button asChild size="lg" className="bg-yellow-600 hover:bg-yellow-700 text-white font-bold">
               <Link href="/account">Ver Estado del Pedido</Link>

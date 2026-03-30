@@ -44,3 +44,6 @@ next-env.d.ts
 firebase-debug.log
 firestore-debug.logproject.tar.gz
 project.tar.gz
+
+# temp files
+tmpclaude-*

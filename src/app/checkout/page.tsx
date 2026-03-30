@@ -88,11 +88,12 @@ export default function CheckoutPage() {
         image: item.image
       })),
       shippingAddress: {
+        fullName: user.name,
         street: formData.street,
         city: formData.city,
         state: formData.state,
         zip: formData.zipCode,
-        country: formData.country
+        country: formData.country || 'Argentina'
       },
       paymentMethod: formData.paymentMethod,
       itemsPrice: cartTotal,

@@ -21,6 +21,7 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import Image from "next/image";
 import { Loader2, LogIn } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -89,6 +90,9 @@ function LoginForm() {
     <div className="container mx-auto flex items-center justify-center min-h-[calc(100vh-4rem)] py-8 px-4">
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1">
+          <div className="flex justify-center mb-3">
+            <Image src="/logo.png" alt="4Fun Logo" width={160} height={160} className="h-28 w-28 md:h-[160px] md:w-[160px] object-contain" />
+          </div>
           <CardTitle className="text-2xl font-bold font-headline text-center">
             Bienvenido de nuevo
           </CardTitle>

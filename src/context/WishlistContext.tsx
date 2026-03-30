@@ -1,5 +1,5 @@
 'use client';
-import { createContext, useContext, useEffect, useState } from 'react';
+import { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import { ApiClient } from '@/lib/api';
 import { useAuth } from '@/hooks/use-auth';
 import type { Game } from '@/lib/types';
@@ -20,7 +20,7 @@ export function WishlistProvider({ children }: { children: React.ReactNode }) {
   const { user } = useAuth();
   const { toast } = useToast();
 
-  const fetchWishlist = async () => {
+  const fetchWishlist = useCallback(async () => {
     if (!user) return;
     try {
       const wishRes = await ApiClient.getWishlist();
@@ -28,7 +28,7 @@ export function WishlistProvider({ children }: { children: React.ReactNode }) {
     } catch (err) {
       console.error("Error fetching wishlist:", err);
     }
-  };
+  }, [user]);
 
   useEffect(() => {
     if (user) {
@@ -38,9 +38,11 @@ export function WishlistProvider({ children }: { children: React.ReactNode }) {
       setWishlist([]);
       setIsLoading(false);
     }
-  }, [user]);
+  }, [user, fetchWishlist]);
 
-  const toggleWishlist = async (game: Game) => {
+  const isInWishlist = useCallback((id: string) => wishlist.some(g => g.id === id), [wishlist]);
+
+  const toggleWishlist = useCallback(async (game: Game) => {
     if (!user) {
       toast({ variant: "destructive", title: "Acción requerida", description: "Inicia sesión para guardar favoritos." });
       return;
@@ -54,10 +56,7 @@ export function WishlistProvider({ children }: { children: React.ReactNode }) {
       // Rollback on error
       await fetchWishlist();
     }
-  };
-
-  const isInWishlist = (id: string) => wishlist.some(g => g.id === id);
-
+  }, [user, toast, isInWishlist, fetchWishlist]);
   return (
     <WishlistContext.Provider value={{ wishlist, toggleWishlist, isInWishlist, isLoading }}>
       {children}

@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { Gamepad2, Heart, Search, ShoppingCart, User, LogOut, Settings } from "lucide-react";
+import Image from "next/image";
+import { Heart, Search, ShoppingCart, User, LogOut, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useCart } from "@/context/CartContext";
@@ -29,12 +30,9 @@ export function Header() {
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container mx-auto flex h-16 max-w-screen-2xl items-center px-4">
-        <Link href="/" className="flex items-center space-x-2 mr-6">
-          <Gamepad2 className="h-6 w-6 text-primary" />
-          <span className="font-bold text-xl font-headline hidden sm:inline-block">
-            4Fun
-          </span>
+      <div className="container mx-auto flex h-16 md:h-20 max-w-screen-2xl items-center px-4">
+        <Link href="/" className="flex items-center mr-4 md:mr-6">
+          <Image src="/logo.png" alt="4Fun Logo" width={72} height={72} className="h-12 w-12 md:h-[72px] md:w-[72px] object-contain" priority />
         </Link>
 
         <nav className="hidden md:flex items-center space-x-6 text-sm font-medium flex-1">
@@ -77,26 +75,26 @@ export function Header() {
             }
           />
 
+          {/* Wishlist: solo para usuarios con sesión */}
           {user && (
-            <>
-              <Button variant="ghost" size="icon" asChild>
-                <Link href="/wishlist" aria-label="Wishlist">
-                  <Heart className="h-5 w-5" />
-                </Link>
-              </Button>
-
-              <Button variant="ghost" size="icon" asChild className="relative">
-                <Link href="/cart" aria-label="Shopping cart">
-                  <ShoppingCart className="h-5 w-5" />
-                  {cartCount > 0 && (
-                    <span className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-primary text-primary-foreground text-xs flex items-center justify-center">
-                      {cartCount}
-                    </span>
-                  )}
-                </Link>
-              </Button>
-            </>
+            <Button variant="ghost" size="icon" asChild>
+              <Link href="/wishlist" aria-label="Wishlist">
+                <Heart className="h-5 w-5" />
+              </Link>
+            </Button>
           )}
+
+          {/* Carrito: siempre visible para que los guest sepan dónde comprar */}
+          <Button variant="ghost" size="icon" asChild className="relative">
+            <Link href="/cart" aria-label="Shopping cart">
+              <ShoppingCart className="h-5 w-5" />
+              {cartCount > 0 && (
+                <span className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-primary text-primary-foreground text-xs flex items-center justify-center">
+                  {cartCount}
+                </span>
+              )}
+            </Link>
+          </Button>
 
           {user ? (
             <DropdownMenu>

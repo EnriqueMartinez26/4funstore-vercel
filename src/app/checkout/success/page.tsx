@@ -16,7 +16,7 @@ export default function SuccessPage() {
   useEffect(() => {
     // Limpiamos el carrito al llegar aquí porque el pago fue exitoso
     clearCart();
-  }, []);
+  }, [clearCart]);
 
   return (
     <div className="container flex items-center justify-center min-h-[80vh] px-4">
@@ -33,7 +33,7 @@ export default function SuccessPage() {
           <p className="text-muted-foreground">
             Gracias por tu compra. Hemos recibido tu pago correctamente y estamos procesando tu pedido.
           </p>
-          
+
           {paymentId && (
             <div className="bg-background p-3 rounded-md border border-border text-sm font-mono text-muted-foreground">
               ID de Transacción: <span className="text-foreground font-bold">{paymentId}</span>

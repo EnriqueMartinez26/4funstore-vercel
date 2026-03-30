@@ -1,13 +1,9 @@
 'use client';
-import { createContext, useContext, useEffect, useState } from 'react';
+import { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import { ApiClient } from '@/lib/api';
 import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '@/hooks/use-toast';
-
-export interface CartItem {
-  id: string; productId: string; name: string; price: number; quantity: number; image?: string;
-  platform?: { name: string };
-}
+import type { CartItem } from '@/lib/types';
 
 interface CartContextType {
   cart: CartItem[]; addToCart: (product: any, quantity?: number) => Promise<void>;
@@ -48,7 +44,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     }
   }, [user]);
 
-  const addToCart = async (product: any, quantity = 1) => {
+  const addToCart = useCallback(async (product: any, quantity = 1) => {
     const newItem = {
       id: `temp-${Date.now()}`,
       productId: product.id,
@@ -60,13 +56,11 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     };
 
     if (user) {
-      setCart(prev => [...prev, newItem]);
       try {
         await ApiClient.addToCart(product.id, quantity);
-        await fetchCart();
+        await fetchCart(); // Reemplaza todo usando Source of Truth
         toast({ title: "Agregado al carrito", description: `${product.name} añadido.` });
       } catch (e: any) {
-        setCart(prev => prev.filter(i => i.id !== newItem.id));
         const errorMessage = e?.message || "No se pudo agregar al carrito.";
         toast({ variant: "destructive", title: "Error", description: errorMessage });
       }
@@ -84,9 +78,9 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       });
       toast({ title: "Agregado al carrito (Local)", description: `${product.name} añadido.` });
     }
-  };
+  }, [user, toast]);
 
-  const updateQuantity = async (itemId: string, quantity: number) => {
+  const updateQuantity = useCallback(async (itemId: string, quantity: number) => {
     if (quantity < 1) return;
     if (user) {
       const oldCart = [...cart];
@@ -101,9 +95,9 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       setCart(newCart);
       localStorage.setItem('cart', JSON.stringify(newCart));
     }
-  };
+  }, [user, cart]);
 
-  const removeFromCart = async (itemId: string) => {
+  const removeFromCart = useCallback(async (itemId: string) => {
     if (user) {
       const oldCart = [...cart];
       setCart(prev => prev.filter(i => i.id !== itemId));
@@ -117,9 +111,9 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       setCart(newCart);
       localStorage.setItem('cart', JSON.stringify(newCart));
     }
-  };
+  }, [user, cart]);
 
-  const clearCart = async () => {
+  const clearCart = useCallback(async () => {
     if (user) {
       setCart([]);
       await ApiClient.clearCart();
@@ -127,7 +121,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       setCart([]);
       localStorage.removeItem('cart');
     }
-  };
+  }, [user]);
 
   return (
     <CartContext.Provider value={{
