@@ -55,7 +55,7 @@ export default async function Home() {
 
         <div className="container relative z-10 mx-auto px-4">
           <div className="flex justify-between items-center mb-8">
-            <h2 className="font-headline text-3xl font-bold md:text-4xl text-center md:text-left">Explorar por Plataforma</h2>
+            <h2 className="font-headline text-3xl font-bold md:text-4xl text-center md:text-left">Explorar por Plataformas</h2>
             <Button variant="outline" asChild className="hidden md:flex">
               <Link href="/productos">Ver todo</Link>
             </Button>
